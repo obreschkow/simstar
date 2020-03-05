@@ -42,8 +42,10 @@ surfsview = function(haloid = 1, subhalos = T, snapshot = 199,
   # separate two species
   xlist = list()
   species = sort(unique(dat$particles$species))
+  k = 0
   for (i in seq(length(species),1)) {
-    xlist[[i]] = x[dat$particles$species==species[i],]
+    k = k+1
+    xlist[[k]] = x[dat$particles$species==species[i],]
   }
   
   # visualize
