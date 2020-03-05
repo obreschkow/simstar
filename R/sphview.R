@@ -42,7 +42,7 @@
 #'
 #' @export
 
-sphview = function(x, col = c('#ff0010', '#0515ff', 'green', 'orange', 'yellow', 'purple'),
+sphview = function(x, col = c('#0515ff', '#ff0010', 'green', 'orange', 'yellow', 'purple'),
                    center = NULL, radius = NULL, radius.scale = 1, screen = TRUE, pngfile = NULL, pdffile = NULL,
                    rotation = 1, kde = TRUE, ngrid = 300, lum = 1, shadows = 1, sigma = 1,
                    arrows = TRUE, side = NULL, xlab = NULL, ylab = NULL,

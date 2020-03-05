@@ -4,7 +4,7 @@
 \alias{sphview}
 \title{Visualise one or seveal 3D point sets}
 \usage{
-sphview(x, col = c("#ff0010", "#0515ff", "green", "orange", "yellow",
+sphview(x, col = c("#0515ff", "#ff0010", "green", "orange", "yellow",
   "purple"), center = NULL, radius = NULL, radius.scale = 1,
   screen = TRUE, pngfile = NULL, pdffile = NULL, rotation = 1,
   kde = TRUE, ngrid = 300, lum = 1, shadows = 1, sigma = 1,

@@ -8,6 +8,7 @@
 #' @param subhalos options specifying whether subhalos should be included (only works, if the specified VELOCIraptor output contains substructure)
 #' @param snapshot simulation snapshot index
 #' @param simulation simulation name; must be matched by a simulation name in the parameterfile.txt in the path.surfsuite directory. This simulation name specified the actual N-body simulation, as well as the VELOCIRAPTOR output.
+#' @param species optional vector listing the species of particles to be shown
 #' @param lum overall luminosity scaling factor (default 1).
 #' @param shadows differential luminosity scaling factor for darker regions (default 1).
 #' @param fourprojections logical flag specifying whether the group is visualised in a single projedction (using \code{\link{sphview}}) or in four projections (\code{\link{sphview4}}).
@@ -20,7 +21,7 @@
 #' @export
 
 surfsview = function(haloid = 1, subhalos = T, snapshot = 199,
-                     simulation = 'L210_N1024-Hydro3D',
+                     simulation = 'L210_N1024-Hydro3D', species,
                      lum = 1, shadows = 1, fourprojections = FALSE, ...) {
   
   # check existence of surfsuite
@@ -41,7 +42,7 @@ surfsview = function(haloid = 1, subhalos = T, snapshot = 199,
   # separate two species
   xlist = list()
   species = sort(unique(dat$particles$species))
-  for (i in seq_along(species)) {
+  for (i in seq(length(species),1)) {
     xlist[[i]] = x[dat$particles$species==species[i],]
   }
   

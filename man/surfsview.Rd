@@ -5,7 +5,7 @@
 \title{Show VELOCIraptor groups in SURFS N-body simulation}
 \usage{
 surfsview(haloid = 1, subhalos = T, snapshot = 199,
-  simulation = "L210_N1024-Hydro3D", lum = 1, shadows = 1,
+  simulation = "L210_N1024-Hydro3D", species, lum = 1, shadows = 1,
   fourprojections = FALSE, ...)
 }
 \arguments{
@@ -16,6 +16,8 @@ surfsview(haloid = 1, subhalos = T, snapshot = 199,
 \item{snapshot}{simulation snapshot index}
 
 \item{simulation}{simulation name; must be matched by a simulation name in the parameterfile.txt in the path.surfsuite directory. This simulation name specified the actual N-body simulation, as well as the VELOCIRAPTOR output.}
+
+\item{species}{optional vector listing the species of particles to be shown}
 
 \item{lum}{overall luminosity scaling factor (default 1).}
 
