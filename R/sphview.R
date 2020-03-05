@@ -130,7 +130,7 @@ sphview = function(x, col = c('#0515ff', '#ff0010', 'green', 'orange', 'yellow',
   }
 
   # raster data
-  smoothing = 0.01*sigma*ngrid/radius
+  smoothing = 0.01*sigma*ngrid
   img = array(0,c(ngrid,ngrid,3))
 
   for (i in seq(n)) {
@@ -154,7 +154,7 @@ sphview = function(x, col = c('#0515ff', '#ff0010', 'green', 'orange', 'yellow',
   }
 
   # finalize image
-  img = atan(img/npoints*ngrid^2/radius^2*lum)/pi*2
+  img = atan(img/npoints*ngrid^2*lum)/pi*2
   f = 10^max(0,shadows)*2
   img = log10(f*img+1)/log10(f+1)
   img = cooltools::lim(img) # just to be sure
