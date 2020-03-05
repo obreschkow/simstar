@@ -25,7 +25,7 @@ surfsview = function(haloid = 1, subhalos = T, snapshot = 199,
                      lum = 1, shadows = 1, fourprojections = FALSE, ...) {
   
   # check existence of surfsuite
-  if (substr(paths()$surfsuite,1,1)=='[') stop('Please specify a surfsuite directory using paths(surfsuite = "...").')
+  if (is.null(paths()$surfsuite)) stop('Please specify a surfsuite directory using paths(surfsuite = "...").')
   
   # load halo
   fn = 'tmphalo.hdf'

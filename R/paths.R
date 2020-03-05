@@ -17,7 +17,7 @@ paths = function(surfsuite=NULL, procorr=NULL) {
     surfsuite = gsub('//','/',paste0(surfsuite,'/'))
     if (file.exists(surfsuite)) {
       if (file.exists(paste0(surfsuite,'surfsuite'))) {
-        .path.surfsuite = surfsuite
+        .simstar.env$path.surfsuite = surfsuite
       } else {
         stop('executable "surfsuite" does not exist in surfsuite directory')
       }
@@ -30,7 +30,7 @@ paths = function(surfsuite=NULL, procorr=NULL) {
     procorr = gsub('//','/',paste0(procorr,'/'))
     if (file.exists(procorr)) {
       if (file.exists(paste0(procorr,'procorr'))) {
-        .path.procorr = procorr
+        .simstar.env$path.procorr = procorr
       } else {
         stop('executable "procorr" does not exist in procorr directory')
       }
@@ -39,9 +39,7 @@ paths = function(surfsuite=NULL, procorr=NULL) {
     }
   }
   
-  na = '[path not yet set]'
-  
-  return(list(surfsuite = ifelse(exists('.path.surfsuite'),.path.surfsuite,na),
-              procorr = ifelse(exists('.path.procorr'),.path.procorr,na)))
+  return(list(surfsuite = ifelse(!is.null(.simstar.env$path.surfsuite),.simstar.env$path.surfsuite,NA),
+              procorr = ifelse(!is.null(.simstar.env$path.procorr),.simstar.env$path.procorr,NA)))
   
 }
