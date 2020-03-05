@@ -10,6 +10,7 @@
 #' @param rotations 4-vector or 4-list specifying four different values/vectors of the argument \code{rotation} in \code{\link{sphview}}. These different rotations are shown in the bottom left, bottom right, top left, and top right panel, respectively, in this order.
 #' @param screen logical flag specifying whether the images is displayed on the screen.
 #' @param pdffile optional pdf-filename to save the image as pdf-file.
+#' @param title Text to be added to the figure.
 #' @param ... additional parameters for \code{\link{sphview}}.
 #' 
 #' @seealso \code{\link{sphview}}
@@ -21,11 +22,11 @@
 #' x.red = cooltools::runif3(1e5,polarangle = c(0,pi/2), azimuth = c(0,pi*0.75))
 #' x.blue = cooltools::runif3(1e5,polarangle = c(pi/2,pi), azimuth = c(pi*1.25,2*pi))
 #' x.green = t(t(cooltools::runif3(2e4,r=0.5))+c(1,1/4,-1))
-#' sphview4(list(x.red,x.blue,x.green), radius.scale=1.2)
+#' sphview4(list(x.blue , x.red, x.green), radius.scale=1.2)
 #'
 #' @export
 
-sphview4 = function(x, rotations=c(2,3,4,1), screen = TRUE, pdffile = NULL, ...) {
+sphview4 = function(x, rotations=c(2,3,4,1), screen = TRUE, pdffile = NULL, title = NULL, ...) {
 
   for (mode in seq(2)) {
 
@@ -55,6 +56,9 @@ sphview4 = function(x, rotations=c(2,3,4,1), screen = TRUE, pdffile = NULL, ...)
       # lines between panels
       lines(c(1,1),c(0,2),col='grey')
       lines(c(0,2),c(1,1),col='grey')
+      
+      # title
+      if (!is.null(title)) text(0.06, 1.94, title, pos=4, col='white', offset=-0.4)
 
       if (mode==2) {dev.off()}
 

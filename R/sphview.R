@@ -19,6 +19,7 @@
 #' @param rotation either an integer (1-6) or a 3-vector specifying a rotationn of the 3D particle positions. For integer, 1=(x,y)-plane, 2=(y,z)-plane, 3=(x,y)-plane, 4=(qmax,qmin)-plane, 5=(qmax,qmid)-plane, 6=(qmid,qmin)-plane, where qmax/qmid/qmin are the eigenvectors of the particle-quadrupole, associated with the maximum/middle/minimum eigenvalues, respectively. If \code{rotation} is a vector, its direction specified the rotation axis and its norm the rotation angle in the positive geometric sense.
 #' @param kde logical flag, specifying whether the particles are smoothed using an addaptive kernel density estimator.
 #' @param ngrid number of grid cells per side in the output image.
+#' @param title Text to be added to the figure.
 #' @param lum overall luminosity scaling factor (default 1).
 #' @param shadows differential luminosity scaling factor for darker regions (default 1).
 #' @param sigma relative smoothing scale (default 1). 
@@ -36,15 +37,15 @@
 #'
 #' @examples
 #' # Example of 2x1e5 particles representing a homogenous sphere contained in another sphere
-#' x.red = cooltools::runif3(1e5)
-#' x.blue = cooltools::runif3(1e5,r = c(0,0.5))
-#' sphview(list(x.red,x.blue), radius.scale=1.2)
+#' x.blue = cooltools::runif3(1e5)
+#' x.red = cooltools::runif3(1e5, r = c(0,0.5))
+#' sphview(list(x.blue,x.red), radius.scale=1.2)
 #'
 #' @export
 
 sphview = function(x, col = c('#0515ff', '#ff0010', 'green', 'orange', 'yellow', 'purple'),
                    center = NULL, radius = NULL, radius.scale = 1, screen = TRUE, pngfile = NULL, pdffile = NULL,
-                   rotation = 1, kde = TRUE, ngrid = 300, lum = 1, shadows = 1, sigma = 1,
+                   rotation = 1, kde = TRUE, ngrid = 300, title = NULL, lum = 1, shadows = 1, sigma = 1,
                    arrows = TRUE, side = NULL, xlab = NULL, ylab = NULL,
                    add = FALSE, add.xlim = NULL, add.ylim = NULL) {
 
@@ -209,10 +210,13 @@ sphview = function(x, col = c('#0515ff', '#ff0010', 'green', 'orange', 'yellow',
           arrows(xleft+d,ybottom+d,xleft+d+larrow,ybottom+d,col='white',length = 0.1,angle=20)
         }
         if (!is.null(ylab)) {
-          text(xleft+d,ybottom+d+larrow,ylab,pos=3,col='white')
+          text(xleft+d*1.2,ybottom+1.7*d+larrow,ylab,pos=4,col='white', offset=-0.4)
           arrows(xleft+d,ybottom+d,xleft+d,ybottom+d+larrow,col='white',length = 0.1,angle=20)
         }
       }
+      
+      # title
+      if (!is.null(title)) text(d*1.2, 1-d*1.2, title, pos=4, col='white', offset=-0.4)
 
       # side axes
       par(xpd=T)

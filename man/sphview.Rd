@@ -7,9 +7,9 @@
 sphview(x, col = c("#0515ff", "#ff0010", "green", "orange", "yellow",
   "purple"), center = NULL, radius = NULL, radius.scale = 1,
   screen = TRUE, pngfile = NULL, pdffile = NULL, rotation = 1,
-  kde = TRUE, ngrid = 300, lum = 1, shadows = 1, sigma = 1,
-  arrows = TRUE, side = NULL, xlab = NULL, ylab = NULL,
-  add = FALSE, add.xlim = NULL, add.ylim = NULL)
+  kde = TRUE, ngrid = 300, title = NULL, lum = 1, shadows = 1,
+  sigma = 1, arrows = TRUE, side = NULL, xlab = NULL,
+  ylab = NULL, add = FALSE, add.xlim = NULL, add.ylim = NULL)
 }
 \arguments{
 \item{x}{list of n-by-3 matrices, represending the coordinates of n 3D positions; n can be different for each matrix. The particles stored in different matrices represent different types of particles and are visualised in different colors.}
@@ -33,6 +33,8 @@ sphview(x, col = c("#0515ff", "#ff0010", "green", "orange", "yellow",
 \item{kde}{logical flag, specifying whether the particles are smoothed using an addaptive kernel density estimator.}
 
 \item{ngrid}{number of grid cells per side in the output image.}
+
+\item{title}{Text to be added to the figure.}
 
 \item{lum}{overall luminosity scaling factor (default 1).}
 
@@ -59,9 +61,9 @@ Produces a square raster image visualising particle positions in 3D N-body/SPH d
 }
 \examples{
 # Example of 2x1e5 particles representing a homogenous sphere contained in another sphere
-x.red = cooltools::runif3(1e5)
-x.blue = cooltools::runif3(1e5,r = c(0,0.5))
-sphview(list(x.red,x.blue), radius.scale=1.2)
+x.blue = cooltools::runif3(1e5)
+x.red = cooltools::runif3(1e5, r = c(0,0.5))
+sphview(list(x.blue,x.red), radius.scale=1.2)
 
 }
 \seealso{
