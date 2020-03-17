@@ -7,6 +7,7 @@
 #' @param haloid halo index in the VELOCIraptor output
 #' @param subhalos options specifying whether subhalos should be included (only works, if the specified VELOCIraptor output contains substructure)
 #' @param snapshot simulation snapshot index
+#' @param at optional snapshot index, specifying at what snapshot the particles of the halo extracted from snapshot "snapshot" should be displayed
 #' @param simulation simulation name; must be matched by a simulation name in the parameterfile.txt in the path.surfsuite directory. This simulation name specified the actual N-body simulation, as well as the VELOCIRAPTOR output.
 #' @param species optional vector listing the species of particles to be shown
 #' @param lum overall luminosity scaling factor (default 1).
@@ -20,7 +21,7 @@
 #'
 #' @export
 
-surfsview = function(haloid = 1, subhalos = T, snapshot = 199,
+surfsview = function(haloid = 1, subhalos = T, snapshot = 199, at = NULL,
                      simulation = 'L210_N1024-Hydro3D', species,
                      lum = 1, shadows = 1, fourprojections = FALSE, ...) {
   
@@ -29,33 +30,33 @@ surfsview = function(haloid = 1, subhalos = T, snapshot = 199,
   
   # load halo
   fn = 'tmphalo.hdf'
-  call = sprintf('%ssurfsuite gethalo %d -simulation %s -snapshot %d -subhalos %d -center 1 -parameterfile %sparameters.txt -outputfile %s',
+  if (is.null(at)) {
+    call = sprintf('%ssurfsuite gethalo %d -simulation %s -snapshot %d -subhalos %d -center 1 -parameterfile %sparameters.txt -outputfile %s',
                  paths()$surfsuite,haloid,simulation,snapshot,as.integer(subhalos),paths()$surfsuite,fn)
+  } else {
+    call = sprintf('%ssurfsuite trackhalo %d -simulation %s -snapshot %d -from %d -to %d -subhalos %d -center 1 -parameterfile %sparameters.txt -outputfile %s',
+                   paths()$surfsuite,haloid,simulation,snapshot,at,at,as.integer(subhalos),paths()$surfsuite,fn)
+  }
   system(call)
   dat = rhdf5::h5read(fn,'/')
   call = paste0('rm ',fn)
   system(call)
   
-  # extract positions into matrix
-  x = cbind(dat$particles$rx,dat$particles$ry,dat$particles$rz)
-  
-  # separate two species
-  xlist = list()
-  species = sort(unique(dat$particles$species))
-  k = 0
-  for (i in seq(length(species),1)) {
-    k = k+1
-    xlist[[k]] = x[dat$particles$species==species[i],]
+  # recast positions into matrix
+  if (is.null(at)) {
+    x = cbind(dat$particles$rx,dat$particles$ry,dat$particles$rz)
+  } else {
+    x = cbind(dat$particles$snapshot$rx,dat$particles$snapshot$ry,dat$particles$snapshot$rz)
   }
   
   # visualize
   if (fourprojections) {
   
-    sphview4(xlist, lum = 0.2*lum, shadows=1.5*shadows, ...)  
+    sphview4(x, dat$particles$species, lum = 0.2*lum, shadows=1.5*shadows, ...)  
     
   } else {
     
-    sphview(xlist, lum = 0.2*lum, shadows=1.5*shadows, ...)
+    sphview(x, dat$particles$species, lum = 0.2*lum, shadows=1.5*shadows, ...)
     
   }
   

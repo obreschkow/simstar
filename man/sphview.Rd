@@ -4,23 +4,29 @@
 \alias{sphview}
 \title{Visualise one or seveal 3D point sets}
 \usage{
-sphview(x, col = c("#0515ff", "#ff0010", "green", "orange", "yellow",
-  "purple"), center = NULL, radius = NULL, radius.scale = 1,
-  screen = TRUE, pngfile = NULL, pdffile = NULL, rotation = 1,
-  kde = TRUE, ngrid = 300, title = NULL, lum = 1, shadows = 1,
-  sigma = 1, arrows = TRUE, side = NULL, xlab = NULL,
-  ylab = NULL, add = FALSE, add.xlim = NULL, add.ylim = NULL)
+sphview(x, species, col = c("#ff0010", "#0515ff", "green", "orange",
+  "yellow", "purple"), center = NULL, xlim = NULL, ylim = NULL,
+  auto.scale = 1, screen = TRUE, pngfile = NULL, pdffile = NULL,
+  rotation = 1, kde = TRUE, ngrid = 300, title = NULL,
+  title.origin = NULL, lum = 1, shadows = 1, sigma = 1,
+  arrows = TRUE, arrow.origin = NULL, arrow.length = NULL,
+  arrow.lwd = 1.5, side = NULL, xlab = NULL, ylab = NULL,
+  cex = 1)
 }
 \arguments{
-\item{x}{list of n-by-3 matrices, represending the coordinates of n 3D positions; n can be different for each matrix. The particles stored in different matrices represent different types of particles and are visualised in different colors.}
+\item{x}{n-by-3 matrix, representing the 3D-coordinates of n particles.}
 
-\item{col}{vector of colors used for the different particle types, corresponding to the matrix-valued elements in the list \code{x}.}
+\item{species}{optional n-element vector giving the integer species indices, which will specify the color of the particles. If not given, all particles will have the first colour given in the vector \code{col}.}
+
+\item{col}{vector of colors, specifying the color of the species given in the optional species vector.}
 
 \item{center}{3-vector specifying the coordinate at the center of the plot. The default is the center of mass.}
 
-\item{radius}{radius (= half horizontal/vertical diameter) of the image in the same length units as \code{x}. The default is the largest distance between the center of mass and all points, multiplied by \code{radius.scale}.}
+\item{xlim}{2-vector specifying the horizontal range of the image in the units of \code{x}. The default is c(-1,1) times the largest distance between the center of mass and all points, multiplied by \code{auto.scale}.}
 
-\item{radius.scale}{scaling factor of the \code{radius}, if the latter is not specified by the user.}
+\item{ylim}{2-vector specifying the vertical range of the image in the units of \code{x}. The default is c(-1,1) times the largest distance between the center of mass and all points, multiplied by \code{auto.scale}.}
+
+\item{auto.scale}{scaling factor of the \code{radius}, if the latter is not specified by the user.}
 
 \item{screen}{logical flag specifying whether the images is displayed on the screen.}
 
@@ -32,9 +38,11 @@ sphview(x, col = c("#0515ff", "#ff0010", "green", "orange", "yellow",
 
 \item{kde}{logical flag, specifying whether the particles are smoothed using an addaptive kernel density estimator.}
 
-\item{ngrid}{number of grid cells per side in the output image.}
+\item{ngrid}{number of grid cells per side in the output image. If the image is not square ngrid is interpreted as the geometric mean between the horizontal and the vertical number of pixels, such that the total number of pixels remains about ngrid^2.}
 
 \item{title}{Text to be added to the figure.}
+
+\item{title.origin}{optional 2-vector specifying the position of the title}
 
 \item{lum}{overall luminosity scaling factor (default 1).}
 
@@ -44,26 +52,34 @@ sphview(x, col = c("#0515ff", "#ff0010", "green", "orange", "yellow",
 
 \item{arrows}{logical flag, specifying if axis-arrows are drawn.}
 
+\item{arrow.origin}{optional 2-vector specifying the origin of the arrows}
+
+\item{arrow.length}{optional number specitying the length of the arrows}
+
+\item{arrow.lwd}{line width of arrows}
+
 \item{side}{vector made of up to four integer values (1/2/3/4), specifying which axes with tick marks are to be drawn (see \code{\link{axis}}).}
 
 \item{xlab}{label on horizontal arrow (only shown if \code{arrows=TRUE}).}
 
 \item{ylab}{label on vertical arrow (only shown if \code{arrows=TRUE}).}
 
-\item{add}{logical flag specifying whether the images added to an existing plot. If TRUE, no pdf-file can be produced with this routine.}
-
-\item{add.xlim}{2-vector specifing the horiziontal position (left and right) of the image on the existing plot if \code{add=TRUE}.}
-
-\item{add.ylim}{2-vector specifing the vertical position (bottom and top) of the image on the existing plot if \code{add=TRUE}.}
+\item{cex}{text size}
+}
+\value{
+Returns a list of items
+\item{rgb}{ngrid-by-ngrid-by-3 array of containig the rgb colour data between 0 and 1}
+\item{radius}{positive real number specifying the radius of the image along the horizontal and vertical axes, in the units of the particle positions}
+\item{rotationmatrix}{rotation matrix applied to the input data, i.e. the projection was x = (x\%*\%rot)[,1:2]}
 }
 \description{
 Produces a square raster image visualising particle positions in 3D N-body/SPH data.
 }
 \examples{
 # Example of 2x1e5 particles representing a homogenous sphere contained in another sphere
-x.blue = cooltools::runif3(1e5)
 x.red = cooltools::runif3(1e5, r = c(0,0.5))
-sphview(list(x.blue,x.red), radius.scale=1.2)
+x.blue = cooltools::runif3(1e5)
+sphview(rbind(x.red,x.blue), c(rep(1,1e5),rep(2,1e5)), auto.scale=1.2)
 
 }
 \seealso{

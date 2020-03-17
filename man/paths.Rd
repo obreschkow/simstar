@@ -4,12 +4,17 @@
 \alias{paths}
 \title{Get and set paths to external routines}
 \usage{
-paths(surfsuite = NULL, procorr = NULL)
+paths(surfsuite = NULL, procorr = NULL, temporary = NULL)
 }
 \arguments{
 \item{surfsuite}{path of the tool surfsuite, available at https://github.com/obreschkow/surfsuite}
 
 \item{procorr}{path of the tool procorr, available at https://github.com/obreschkow/procorr}
+
+\item{temporary}{path to save temporary data}
+}
+\value{
+Returns a list with the currently set paths.
 }
 \description{
 Get and set paths to external routines

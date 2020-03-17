@@ -19,7 +19,7 @@ Evaluates the multipole moment differences of two 3D point sets; designed to stu
 x.gas = cooltools::runif3(4e3)
 x.cdm = t(cbind(t(cooltools::runif3(5e3))-c(1,0,0),t(cooltools::runif3(5e3))+c(1,0,0)))
 cat(sprintf('Quadrupole index = \%.2f\\n',shape(x.cdm,x.gas)$mu[3]))
-sphview(list(x.cdm,x.gas))
+sphview(rbind(x.cdm,x.gas), c(rep(2,4e3),rep(1,1e4)))
 
 }
 \seealso{

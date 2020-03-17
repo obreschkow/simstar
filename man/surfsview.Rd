@@ -4,7 +4,7 @@
 \alias{surfsview}
 \title{Show VELOCIraptor groups in SURFS N-body simulation}
 \usage{
-surfsview(haloid = 1, subhalos = T, snapshot = 199,
+surfsview(haloid = 1, subhalos = T, snapshot = 199, at = NULL,
   simulation = "L210_N1024-Hydro3D", species, lum = 1, shadows = 1,
   fourprojections = FALSE, ...)
 }
@@ -14,6 +14,8 @@ surfsview(haloid = 1, subhalos = T, snapshot = 199,
 \item{subhalos}{options specifying whether subhalos should be included (only works, if the specified VELOCIraptor output contains substructure)}
 
 \item{snapshot}{simulation snapshot index}
+
+\item{at}{optional snapshot index, specifying at what snapshot the particles of the halo extracted from snapshot "snapshot" should be displayed}
 
 \item{simulation}{simulation name; must be matched by a simulation name in the parameterfile.txt in the path.surfsuite directory. This simulation name specified the actual N-body simulation, as well as the VELOCIRAPTOR output.}
 
