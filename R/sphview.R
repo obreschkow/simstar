@@ -144,8 +144,8 @@ sphview = function(x, species, col = c('#ff0010', '#0515ff', 'green', 'orange', 
   width = xlim[2]-xlim[1]
   height = ylim[2]-ylim[1]
   diagonal = sqrt(width*height)
-  nx = ngrid*width/diagonal
-  ny = ngrid*height/diagonal
+  nx = round(ngrid*width/diagonal)
+  ny = round(ngrid*height/diagonal)
   
   # determine arrows
   if (is.null(arrow.origin)) arrow.origin = c(xlim[1],ylim[1])+0.05*diagonal
@@ -174,7 +174,7 @@ sphview = function(x, species, col = c('#ff0010', '#0515ff', 'green', 'orange', 
         g$n = EBImage::gblur(g$n,smoothing)
       }
     }
-
+    
     for (k in seq(3)) {
       img[,,k] = img[,,k]+col[s[i],k]*g$n
     }
