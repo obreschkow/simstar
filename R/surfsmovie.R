@@ -158,7 +158,7 @@ surfsmovie = function(file.track, radius = NULL, aspect = 16/9,
   }
   
   # produce frames
-  for (frame in seq_along(t.plot)) {
+  for (frame in c(54,55)){#seq_along(t.plot)) {
     
     # progress update
     cat(sprintf('Make frame %d/%d\n',frame,length(t.plot)))
@@ -172,7 +172,7 @@ surfsmovie = function(file.track, radius = NULL, aspect = 16/9,
     }
     
     # make frame
-    rgb = sphview(x, track$particles$species, screen=FALSE, rotation=rotation, xlim=xlim, ylim=ylim, ...)$rgb
+    rgb = sphview(x, track$particles$species, screen=FALSE, rotation=rot, xlim=xlim, ylim=ylim, ...)$rgb
     
     # add text to frame
     if (show.time) {

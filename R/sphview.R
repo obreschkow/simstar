@@ -96,8 +96,7 @@ sphview = function(x, species, col = c('#ff0010', '#0515ff', 'green', 'orange', 
     rot = t(cooltools::rotation3(rotation))
     if (is.null(xlab)) xlab = expression(e[1])
     if (is.null(ylab)) ylab = expression(e[2])
-  } else {
-    if (length(rotation)!=1) stop('rotation must be an integer 1,...,6 or a real 3-vector.')
+  } else if (length(rotation)==1) {
     if (rotation>3) e = eigen(cooltools::quadrupole(x))$vectors
     if (rotation==1) {
       rot = diag(3)
@@ -124,8 +123,12 @@ sphview = function(x, species, col = c('#ff0010', '#0515ff', 'green', 'orange', 
       if (is.null(xlab)) xlab = expression(lambda ['mid'])
       if (is.null(ylab)) ylab = expression('  '*lambda ['min'])
     } else {
-      stop('rotation must be an integer 1,...,6 or a real 3-vector.')
+      stop('rotation must be an integer 1,...,6, a real 3-vector, or a 3-by-3 matrix.')
     }
+  } else if (length(rotation)==9) {
+    rot = rotation
+  } else {
+    stop('rotation must be an integer 1,...,6, a real 3-vector, or a 3-by-3 matrix.')
   }
 
   # center points
@@ -154,7 +157,7 @@ sphview = function(x, species, col = c('#ff0010', '#0515ff', 'green', 'orange', 
 
   # rotate and project coordinates
   x = (x%*%rot)[,1:2]
-
+  
   # raster data
   smoothing = 0.008*sigma*ngrid
   img = array(0,c(nx,ny,3))
@@ -170,7 +173,7 @@ sphview = function(x, species, col = c('#ff0010', '#0515ff', 'green', 'orange', 
         g = cooltools::kde2(x[sel,1],x[sel,2],xlim=xlim,ylim=ylim,n=c(nx,ny),s = 0.2*smoothing^0.5, sd.max=smoothing*2)
         g$n = g$d
       } else {
-        g = cooltools::griddata2(x[sel,1],x[sel,2],xlim=c(-1,1)*radius,ylim=c(-1,1)*radius,n=c(nx,ny))
+        g = cooltools::griddata2(x[sel,1],x[sel,2],xlim=xlim,ylim=ylim,n=c(nx,ny))
         g$n = EBImage::gblur(g$n,smoothing)
       }
     }
@@ -185,7 +188,7 @@ sphview = function(x, species, col = c('#ff0010', '#0515ff', 'green', 'orange', 
   img = atan(img/n*ngrid^2*lum)/pi*2
   f = 10^max(0,shadows)*2
   img = log10(f*img+1)/log10(f+1)
-  img = cooltools::lim(img) # just to be sure
+  #img = cooltools::lim(img) # just to be sure
 
   # save raster image as png
   if (!is.null(pngfile)) {
