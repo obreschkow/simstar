@@ -154,7 +154,7 @@ surfsmovie = function(file.track, radius = NULL, aspect = 16/9,
   if (is.null(dt)) {
     t.plot = snapshots$t
   } else {
-    t.plot = rev(seq(min(snapshots$t),max(snapshots$t)+dt,dt))
+    t.plot = rev(seq(min(snapshots$t),max(snapshots$t),dt))
   }
   
   # produce frames

@@ -59,8 +59,8 @@ sphview = function(x, species, col = c('#ff0010', '#0515ff', 'green', 'orange', 
                    side = NULL, xlab = NULL, ylab = NULL, cex=1) {
   
   # rescale luminosity scale (values matched to typical sph halos)
-  lum = 0.2*lum
-  shadows = 1.5*shadows
+  lum = 0.15*lum
+  shadows = 2*shadows
 
   # handle x
   if (is.array(x)) {
