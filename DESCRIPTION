@@ -16,7 +16,9 @@ Imports:
     rhdf5,
     grDevices,
     plotrix,
-    data.table
+    data.table,
+    celestial,
+    magick
 License: GPL-3
 Encoding: UTF-8
 LazyData: true

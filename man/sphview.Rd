@@ -26,7 +26,7 @@ sphview(x, species, col = c("#ff0010", "#0515ff", "green", "orange",
 
 \item{ylim}{2-vector specifying the vertical range of the image in the units of \code{x}. The default is c(-1,1) times the largest distance between the center of mass and all points, multiplied by \code{auto.scale}.}
 
-\item{auto.scale}{scaling factor of the \code{radius}, if the latter is not specified by the user.}
+\item{auto.scale}{number of 2-vector specifying the scaling factor for the automatically determined xlim and ylim, if the latter are not specified by the user.}
 
 \item{screen}{logical flag specifying whether the images is displayed on the screen.}
 
@@ -34,7 +34,7 @@ sphview(x, species, col = c("#ff0010", "#0515ff", "green", "orange",
 
 \item{pdffile}{optional pdf-filename to save the image as pdf-file.}
 
-\item{rotation}{either an integer (1-6) or a 3-vector specifying a rotationn of the 3D particle positions. For integer, 1=(x,y)-plane, 2=(y,z)-plane, 3=(x,y)-plane, 4=(qmax,qmin)-plane, 5=(qmax,qmid)-plane, 6=(qmid,qmin)-plane, where qmax/qmid/qmin are the eigenvectors of the particle-quadrupole, associated with the maximum/middle/minimum eigenvalues, respectively. If \code{rotation} is a vector, its direction specified the rotation axis and its norm the rotation angle in the positive geometric sense.}
+\item{rotation}{either an integer (1-6) or a 3-vector specifying a rotationn of the 3D particle positions. In case of an integer: 1=(x,y)-plane, 2=(y,z)-plane, 3=(x,y)-plane, 4=(qmax,qmin)-plane, 5=(qmax,qmid)-plane, 6=(qmid,qmin)-plane, where qmax/qmid/qmin are the eigenvectors of the particle-quadrupole, associated with the maximum/middle/minimum eigenvalues, respectively. If \code{rotation} is a vector, its direction specifies the rotation axis and its norm the rotation angle in radians in the positive geometric sense.}
 
 \item{kde}{logical flag, specifying whether the particles are smoothed using an addaptive kernel density estimator.}
 

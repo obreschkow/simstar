@@ -10,8 +10,6 @@
 #' @param at optional snapshot index, specifying at what snapshot the particles of the halo extracted from snapshot "snapshot" should be displayed
 #' @param simulation simulation name; must be matched by a simulation name in the parameterfile.txt in the path.surfsuite directory. This simulation name specified the actual N-body simulation, as well as the VELOCIRAPTOR output.
 #' @param species optional vector listing the species of particles to be shown
-#' @param lum overall luminosity scaling factor (default 1).
-#' @param shadows differential luminosity scaling factor for darker regions (default 1).
 #' @param fourprojections logical flag specifying whether the group is visualised in a single projedction (using \code{\link{sphview}}) or in four projections (\code{\link{sphview4}}).
 #' @param ... additional arguments to passed to \code{\link{sphview}} or \code{\link{sphview4}}, respectively.
 #' 
@@ -23,7 +21,7 @@
 
 surfsview = function(haloid = 1, subhalos = T, snapshot = 199, at = NULL,
                      simulation = 'L210_N1024-Hydro3D', species,
-                     lum = 1, shadows = 1, fourprojections = FALSE, ...) {
+                     fourprojections = FALSE, ...) {
   
   # check existence of surfsuite
   if (is.na(paths()$surfsuite)) stop('Please specify a surfsuite directory using paths(surfsuite = "...").')
@@ -52,11 +50,11 @@ surfsview = function(haloid = 1, subhalos = T, snapshot = 199, at = NULL,
   # visualize
   if (fourprojections) {
   
-    sphview4(x, dat$particles$species, lum = 0.2*lum, shadows=1.5*shadows, ...)  
+    sphview4(x, dat$particles$species, ...)  
     
   } else {
     
-    sphview(x, dat$particles$species, lum = 0.2*lum, shadows=1.5*shadows, ...)
+    sphview(x, dat$particles$species, ...)
     
   }
   

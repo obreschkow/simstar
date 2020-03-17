@@ -14,11 +14,11 @@
 #' @param center 3-vector specifying the coordinate at the center of the plot. The default is the center of mass.
 #' @param xlim 2-vector specifying the horizontal range of the image in the units of \code{x}. The default is c(-1,1) times the largest distance between the center of mass and all points, multiplied by \code{auto.scale}.
 #' @param ylim 2-vector specifying the vertical range of the image in the units of \code{x}. The default is c(-1,1) times the largest distance between the center of mass and all points, multiplied by \code{auto.scale}.
-#' @param auto.scale scaling factor of the \code{radius}, if the latter is not specified by the user.
+#' @param auto.scale number of 2-vector specifying the scaling factor for the automatically determined xlim and ylim, if the latter are not specified by the user.
 #' @param screen logical flag specifying whether the images is displayed on the screen.
 #' @param pngfile optional png-filename to save the image as raster image.
 #' @param pdffile optional pdf-filename to save the image as pdf-file.
-#' @param rotation either an integer (1-6) or a 3-vector specifying a rotationn of the 3D particle positions. For integer, 1=(x,y)-plane, 2=(y,z)-plane, 3=(x,y)-plane, 4=(qmax,qmin)-plane, 5=(qmax,qmid)-plane, 6=(qmid,qmin)-plane, where qmax/qmid/qmin are the eigenvectors of the particle-quadrupole, associated with the maximum/middle/minimum eigenvalues, respectively. If \code{rotation} is a vector, its direction specified the rotation axis and its norm the rotation angle in the positive geometric sense.
+#' @param rotation either an integer (1-6) or a 3-vector specifying a rotationn of the 3D particle positions. In case of an integer: 1=(x,y)-plane, 2=(y,z)-plane, 3=(x,y)-plane, 4=(qmax,qmin)-plane, 5=(qmax,qmid)-plane, 6=(qmid,qmin)-plane, where qmax/qmid/qmin are the eigenvectors of the particle-quadrupole, associated with the maximum/middle/minimum eigenvalues, respectively. If \code{rotation} is a vector, its direction specifies the rotation axis and its norm the rotation angle in radians in the positive geometric sense.
 #' @param kde logical flag, specifying whether the particles are smoothed using an addaptive kernel density estimator.
 #' @param ngrid number of grid cells per side in the output image. If the image is not square ngrid is interpreted as the geometric mean between the horizontal and the vertical number of pixels, such that the total number of pixels remains about ngrid^2.
 #' @param title Text to be added to the figure.
@@ -57,6 +57,10 @@ sphview = function(x, species, col = c('#ff0010', '#0515ff', 'green', 'orange', 
                    rotation = 1, kde = TRUE, ngrid = 300, title = NULL, title.origin = NULL, lum = 1, shadows = 1, sigma = 1,
                    arrows = TRUE, arrow.origin = NULL, arrow.length = NULL, arrow.lwd = 1.5,
                    side = NULL, xlab = NULL, ylab = NULL, cex=1) {
+  
+  # rescale luminosity scale (values matched to typical sph halos)
+  lum = 0.2*lum
+  shadows = 1.5*shadows
 
   # handle x
   if (is.array(x)) {
@@ -134,8 +138,9 @@ sphview = function(x, species, col = c('#ff0010', '#0515ff', 'green', 'orange', 
 
   # determine xlim, ylim
   radius = sqrt(max(apply(t(t(x)-x0)^2,1,sum)))
-  if (is.null(xlim)) xlim = c(-radius,radius)*auto.scale
-  if (is.null(ylim)) ylim = c(-radius,radius)*auto.scale
+  if (length(auto.scale)==1) auto.scale = rep(auto.scale,2)
+  if (is.null(xlim)) xlim = c(-radius,radius)*auto.scale[1]
+  if (is.null(ylim)) ylim = c(-radius,radius)*auto.scale[2]
   width = xlim[2]-xlim[1]
   height = ylim[2]-ylim[1]
   diagonal = sqrt(width*height)
@@ -151,7 +156,7 @@ sphview = function(x, species, col = c('#ff0010', '#0515ff', 'green', 'orange', 
   x = (x%*%rot)[,1:2]
 
   # raster data
-  smoothing = 0.01*sigma*ngrid
+  smoothing = 0.008*sigma*ngrid
   img = array(0,c(nx,ny,3))
   s = unique(species)
   
