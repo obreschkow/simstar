@@ -18,7 +18,7 @@
 #' @param velocity.conversion conversion factor from velocity units in the simulation to length units/Gyr (at z=0). The default corresponds to the standard of Gadget-2.
 #' @param dt time interval between frames in Gyr
 #' @param keep.frames logical flag specifying whether the individual frame images are to be kept in a temporary folder within the directory specified by \code{\link{paths}}.
-#' @param rotation either an integer (1-6) or a 3-vector specifying a rotationn of the 3D particle positions. In case of an integer: 1=(x,y)-plane, 2=(y,z)-plane, 3=(x,y)-plane, 4=(qmax,qmin)-plane, 5=(qmax,qmid)-plane, 6=(qmid,qmin)-plane, where qmax/qmid/qmin are the eigenvectors of the particle-quadrupole, associated with the maximum/middle/minimum eigenvalues, respectively. If \code{rotation} is a vector, its direction specifies the rotation axis and its norm the rotation angle in radians in the positive geometric sense.
+#' @param rotation either an integer (1-6) or a 3-vector, specifying a rotation of the 3D particle positions. In case of an integer: 1=(x,y)-plane, 2=(y,z)-plane, 3=(x,y)-plane, 4=(qmax,qmin)-plane, 5=(qmax,qmid)-plane, 6=(qmid,qmin)-plane, where qmax/qmid/qmin are the eigenvectors of the particle-quadrupole, associated with the maximum/middle/minimum eigenvalues, respectively. If \code{rotation} is a vector, its direction specifies the rotation axis and its norm the rotation angle in radians in the positive geometric sense.
 #' @param show.time logical flag specifying whether the lookback time is displayed
 #' @param text.size scaling factor for the text size used for the lookback time
 #' @param ... additional arguments to passed to \code{\link{sphview}}.
@@ -158,7 +158,7 @@ surfsmovie = function(file.track, radius = NULL, aspect = 16/9,
   }
   
   # produce frames
-  for (frame in c(54,55)){#seq_along(t.plot)) {
+  for (frame in seq_along(t.plot)) {
     
     # progress update
     cat(sprintf('Make frame %d/%d\n',frame,length(t.plot)))

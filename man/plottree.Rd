@@ -4,14 +4,34 @@
 \alias{plottree}
 \title{Display merger tree}
 \usage{
-plottree(tree = NULL, normalize.mass = TRUE, sort = TRUE,
-  spacetype = 3, straightening = 0, simplify = FALSE, style = 3,
-  root.length = 0.5, leaf.length = 0.5, margin = 0.03,
-  col = rainbow(100, start = 0, end = 5/6), draw.edges = TRUE,
-  draw.vertices = FALSE, draw.box = TRUE, add = FALSE, xlim = c(0,
-  1), ylim = c(0, 1), scale = 1, gamma = 1, min = 0,
-  vertex.size = 1, pdf.filename = NULL, pdf.size = 5,
-  forced.x = NULL, forced.y = NULL)
+plottree(
+  tree = NULL,
+  normalize.mass = TRUE,
+  sort = TRUE,
+  spacetype = 3,
+  straightening = 0,
+  simplify = FALSE,
+  style = 3,
+  root.length = 0.5,
+  leaf.length = 0.5,
+  margin = 0.03,
+  col = rainbow(100, start = 0, end = 5/6),
+  draw.edges = TRUE,
+  draw.vertices = FALSE,
+  draw.box = TRUE,
+  add = FALSE,
+  xlim = c(0, 1),
+  ylim = c(0, 1),
+  scale = 1,
+  gamma = 1,
+  min = 0,
+  vertex.size = 1,
+  pdf.filename = NULL,
+  pdf.size = 5,
+  forced.x = NULL,
+  forced.y = NULL,
+  overlap = 0.001
+)
 }
 \arguments{
 \item{tree}{list of vectors of equal lengths (\code{n}), specifying the \code{n} vertices (halos) a tree. These vectors are:
@@ -20,7 +40,7 @@ plottree(tree = NULL, normalize.mass = TRUE, sort = TRUE,
 
 \code{mass} (optional) specifies contains the masses of the vertices. If not given, the mass will be chosen equal to the number of leaves in the subtree leading to this node.
 
-\code{value} (optional) contains values, normalized to [0,1], to be displayed in color.
+\code{value} (optional) contains values, normalized to [0,1], to be displayed in colour.
 
 \code{length} (optional) number of vertical steps ("snapshots") to the descendant of each vertex. If not given, the default values is one.}
 
@@ -30,7 +50,7 @@ plottree(tree = NULL, normalize.mass = TRUE, sort = TRUE,
 
 \item{spacetype}{integer, specifying how much horizontal space is allocated to each progenitor branch: 1=all progenitors get equal space, 2=proportional to number of leaves, 3=proportional to mass}
 
-\item{straightening}{real between 0 and 1 specifying the maximal mass-ratio up to which it is enforced that the  main progentior is strictly vertically above its descendant.}
+\item{straightening}{real between 0 and 1 specifying the maximal mass-ratio up to which it is enforced that the  main progenitor is strictly vertically above its descendant.}
 
 \item{simplify}{logical flag. If TRUE, all the vertices, other than the root, with only one progenitor are removed for graphical simplicity.}
 
@@ -40,9 +60,9 @@ plottree(tree = NULL, normalize.mass = TRUE, sort = TRUE,
 
 \item{leaf.length}{length of the leaf branches, extending up from the leaves}
 
-\item{margin}{thickness of margin surrouding the plot}
+\item{margin}{thickness of margin surrounding the plot}
 
-\item{col}{color of the edges; or a vector of colors if values have been specified in the tree}
+\item{col}{colour of the edges; or a vector of colours if values have been specified in the tree}
 
 \item{draw.edges}{logical flag to turn on/off edges}
 
@@ -52,7 +72,7 @@ plottree(tree = NULL, normalize.mass = TRUE, sort = TRUE,
 
 \item{add}{logical flag specifying whether the plot should be added to an existing plot}
 
-\item{xlim}{horizontal range of the tree with margin (expecially needed if add = FALSE)}
+\item{xlim}{horizontal range of the tree with margin (especially needed if add = FALSE)}
 
 \item{ylim}{vertical range of the tree with margin (only needed if add = FALSE)}
 
@@ -64,13 +84,15 @@ plottree(tree = NULL, normalize.mass = TRUE, sort = TRUE,
 
 \item{vertex.size}{scaling factor of the vertex size}
 
-\item{pdf.filename}{optional filename of a PDF file to be saved}
+\item{pdf.filename}{optional file name of a PDF file to be saved}
 
 \item{pdf.size}{optional size of the PDF image}
 
 \item{forced.x}{optional vector allowing the user to enforce the x-positions of individual nodes. Use NAs for automatic values.}
 
 \item{forced.y}{optional vector allowing the user to enforce the y-positions of individual nodes. Use NAs for automatic values.}
+
+\item{overlap}{optional number specifying a small vertical overlap between branches to avoid spurious gaps in graphical outputs}
 }
 \description{
 Visualise rooted directional trees, such as the merger trees of halos and galaxies.

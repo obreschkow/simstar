@@ -4,11 +4,23 @@
 \alias{surfsmovie}
 \title{Generate movie for SURFS particles}
 \usage{
-surfsmovie(file.track, radius = NULL, aspect = 16/9, mp4file,
-  fps = 60, H0 = 70, OmegaM = 0.3, OmegaL = 0.7,
-  velocity.conversion = 0.00102269032 * (H0/100), dt = 0.05,
-  keep.frames = TRUE, rotation = 1, show.time = TRUE,
-  text.size = 1, ...)
+surfsmovie(
+  file.track,
+  radius = NULL,
+  aspect = 16/9,
+  mp4file,
+  fps = 60,
+  H0 = 70,
+  OmegaM = 0.3,
+  OmegaL = 0.7,
+  velocity.conversion = 0.00102269032 * (H0/100),
+  dt = 0.05,
+  keep.frames = TRUE,
+  rotation = 1,
+  show.time = TRUE,
+  text.size = 1,
+  ...
+)
 }
 \arguments{
 \item{file.track}{filename of the particle tracking file produced by calling "surfsuite trackhalo ..." (see README file of surfsuite).}
@@ -33,7 +45,7 @@ surfsmovie(file.track, radius = NULL, aspect = 16/9, mp4file,
 
 \item{keep.frames}{logical flag specifying whether the individual frame images are to be kept in a temporary folder within the directory specified by \code{\link{paths}}.}
 
-\item{rotation}{either an integer (1-6) or a 3-vector specifying a rotationn of the 3D particle positions. In case of an integer: 1=(x,y)-plane, 2=(y,z)-plane, 3=(x,y)-plane, 4=(qmax,qmin)-plane, 5=(qmax,qmid)-plane, 6=(qmid,qmin)-plane, where qmax/qmid/qmin are the eigenvectors of the particle-quadrupole, associated with the maximum/middle/minimum eigenvalues, respectively. If \code{rotation} is a vector, its direction specifies the rotation axis and its norm the rotation angle in radians in the positive geometric sense.}
+\item{rotation}{either an integer (1-6) or a 3-vector, specifying a rotation of the 3D particle positions. In case of an integer: 1=(x,y)-plane, 2=(y,z)-plane, 3=(x,y)-plane, 4=(qmax,qmin)-plane, 5=(qmax,qmid)-plane, 6=(qmid,qmin)-plane, where qmax/qmid/qmin are the eigenvectors of the particle-quadrupole, associated with the maximum/middle/minimum eigenvalues, respectively. If \code{rotation} is a vector, its direction specifies the rotation axis and its norm the rotation angle in radians in the positive geometric sense.}
 
 \item{show.time}{logical flag specifying whether the lookback time is displayed}
 

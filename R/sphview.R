@@ -18,7 +18,7 @@
 #' @param screen logical flag specifying whether the images is displayed on the screen.
 #' @param pngfile optional png-filename to save the image as raster image.
 #' @param pdffile optional pdf-filename to save the image as pdf-file.
-#' @param rotation either an integer (1-6) or a 3-vector specifying a rotationn of the 3D particle positions. In case of an integer: 1=(x,y)-plane, 2=(y,z)-plane, 3=(x,y)-plane, 4=(qmax,qmin)-plane, 5=(qmax,qmid)-plane, 6=(qmid,qmin)-plane, where qmax/qmid/qmin are the eigenvectors of the particle-quadrupole, associated with the maximum/middle/minimum eigenvalues, respectively. If \code{rotation} is a vector, its direction specifies the rotation axis and its norm the rotation angle in radians in the positive geometric sense.
+#' @param rotation either an integer (1-6), a 3-vector or a 3-by-3 matrix, specifying a rotation of the 3D particle positions. In case of an integer: 1=(x,y)-plane, 2=(y,z)-plane, 3=(x,y)-plane, 4=(qmax,qmin)-plane, 5=(qmax,qmid)-plane, 6=(qmid,qmin)-plane, where qmax/qmid/qmin are the eigenvectors of the particle-quadrupole, associated with the maximum/middle/minimum eigenvalues, respectively. If \code{rotation} is a vector, its direction specifies the rotation axis and its norm the rotation angle in radians in the positive geometric sense.
 #' @param kde logical flag, specifying whether the particles are smoothed using an addaptive kernel density estimator.
 #' @param ngrid number of grid cells per side in the output image. If the image is not square ngrid is interpreted as the geometric mean between the horizontal and the vertical number of pixels, such that the total number of pixels remains about ngrid^2.
 #' @param title Text to be added to the figure.
@@ -188,7 +188,7 @@ sphview = function(x, species, col = c('#ff0010', '#0515ff', 'green', 'orange', 
   img = atan(img/n*ngrid^2*lum)/pi*2
   f = 10^max(0,shadows)*2
   img = log10(f*img+1)/log10(f+1)
-  #img = cooltools::lim(img) # just to be sure
+  img = cooltools::lim(img) # necessary be cause gblur sometimes produces very slightly negative values
 
   # save raster image as png
   if (!is.null(pngfile)) {

@@ -4,8 +4,15 @@
 \alias{sphview4}
 \title{Show one or seveal 3D point sets in four projections}
 \usage{
-sphview4(x, species, rotations = c(2, 3, 4, 1), screen = TRUE,
-  pdffile = NULL, title = NULL, ...)
+sphview4(
+  x,
+  species,
+  rotations = c(2, 3, 4, 1),
+  screen = TRUE,
+  pdffile = NULL,
+  title = NULL,
+  ...
+)
 }
 \arguments{
 \item{x}{n-by-3 matrix, representing the 3D-coordinates of n particles.}

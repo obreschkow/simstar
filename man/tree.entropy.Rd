@@ -4,9 +4,15 @@
 \alias{tree.entropy}
 \title{Tree entropy of halo or galaxy mergers}
 \usage{
-tree.entropy(m = c(1, 1), s = m * 0, mfinal = sum(m),
-  alpha = 1/log(2) + 1, beta = 3/4, gamma = 1/3,
-  generalized = FALSE)
+tree.entropy(
+  m = c(1, 1),
+  s = m * 0,
+  mfinal = sum(m),
+  alpha = 1/log(2) + 1,
+  beta = 3/4,
+  gamma = 1/3,
+  generalized = FALSE
+)
 }
 \arguments{
 \item{m}{vector of masses of the merging haloes (normalization is irrelevant)}
@@ -30,15 +36,15 @@ Computes the tree entropy and generalized entropy of a merger of n>=0 masses, ac
 
 ## check major merger
 txt = 'Tree entropy of an equal-mass binary merger with zero input entropy'
-cat(sprintf('\%s = \%.5f = beta\\n',txt,tree.entropy()))
+cat(sprintf('\%s = \%.5f = beta\n',txt,tree.entropy()))
 
 ## check smooth accretion
 txt = 'Tree entropy of a maximum-entropy halo that doubles its mass by smooth accretion'
-cat(sprintf('\%s = \%.5f = (1/2)^gamma\\n',txt,tree.entropy(1,1,2)))
+cat(sprintf('\%s = \%.5f = (1/2)^gamma\n',txt,tree.entropy(1,1,2)))
 
 ## check nearly smooth collapse
 txt = 'Tree entropy of a halo grown from an instantaneous merger of 1e6 haloes of random entropies'
-cat(sprintf('\%s = \%.5f ~ 0\\n',txt,tree.entropy(rep(1,1e6),runif(1e6))))
+cat(sprintf('\%s = \%.5f ~ 0\n',txt,tree.entropy(rep(1,1e6),runif(1e6))))
 
 }
 \seealso{

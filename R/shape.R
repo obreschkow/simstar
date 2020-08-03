@@ -16,14 +16,11 @@
 #' x.gas = cooltools::runif3(4e3)
 #' x.cdm = t(cbind(t(cooltools::runif3(5e3))-c(1,0,0),t(cooltools::runif3(5e3))+c(1,0,0)))
 #' cat(sprintf('Quadrupole index = %.2f\n',shape(x.cdm,x.gas)$mu[3]))
-#' sphview(rbind(x.cdm,x.gas), c(rep(2,4e3),rep(1,1e4)))
+#' sphview(rbind(x.gas,x.cdm), c(rep(1,4e3),rep(2,1e4)))
 #'
 #' @export
 
 shape = function(x,y) {
-  
-  # returns the relative moment indices and quadrupole eigen systems of two three-dimensional pointsets x[1:nx,1:3] and y[1:ny,1:3]
-  # massratio = mx/my
   
   lmax = 4
   
@@ -60,19 +57,20 @@ shape = function(x,y) {
         fx[i] = mean(cooltools::sphericalharmonics(l,m[i],x)*rx)
         fy[i] = mean(cooltools::sphericalharmonics(l,m[i],y)*ry)
       }
+      prefactor = sqrt(4*pi/(2*l+1))
+      kx = sqrt(sum(abs(fx)^2))
+      ky = sqrt(sum(abs(fy)^2))
+      dk = sqrt(sum(abs(fx-fy)^2))
+      
       if (l==1) {
-        fnorm = sqrt(sum(abs(fx-fy)^2)*4*pi/(2*l+1))
-        moment.index[l+1] = fnorm/(rxmean+rymean) # moment of difference
+        moment.index[l+1] = prefactor*dk/(rxmean+rymean) # nu (moment of difference)
       } else {
-        fxnorm = sqrt(sum(abs(fx)^2)*4*pi/(2*l+1))
-        fynorm = sqrt(sum(abs(fy)^2)*4*pi/(2*l+1))
-        moment.index[l+1] = (fxnorm-fynorm)/max(rxmean,rymean) # difference of moments
+        moment.index[l+1] = prefactor*(kx-ky)/max(rxmean,rymean) # mu (difference of moments)
       }
     }
   }
   
   # return list
-  return(list(species.index = species.index,
-              mu = moment.index))
+  return(list(species.index = species.index, mu = moment.index))
   
 }

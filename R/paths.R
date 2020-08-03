@@ -51,7 +51,7 @@ paths = function(surfsuite=NULL, procorr=NULL, temporary=NULL) {
     }
   }
   
-  return(list(surfsuite = ifelse(!is.null(.simstar.env$path.surfsuite),.simstar.env$path.surfsuite,NA),
+  invisible(list(surfsuite = ifelse(!is.null(.simstar.env$path.surfsuite),.simstar.env$path.surfsuite,NA),
               procorr = ifelse(!is.null(.simstar.env$path.procorr),.simstar.env$path.procorr,NA),
               temporary = ifelse(!is.null(.simstar.env$path.temporary),.simstar.env$path.temporary,NA)))
   

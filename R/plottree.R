@@ -4,6 +4,7 @@
 #' @importFrom graphics lines points plot rect polygon
 #' @importFrom plotrix draw.circle
 #' @importFrom data.table as.data.table
+#' @importFrom stats optimise
 #'
 #' @description Visualise rooted directional trees, such as the merger trees of halos and galaxies.
 #'
@@ -13,7 +14,7 @@
 #'
 #' \code{mass} (optional) specifies contains the masses of the vertices. If not given, the mass will be chosen equal to the number of leaves in the subtree leading to this node.
 #'
-#' \code{value} (optional) contains values, normalized to [0,1], to be displayed in color.
+#' \code{value} (optional) contains values, normalized to [0,1], to be displayed in colour.
 #'
 #' \code{length} (optional) number of vertical steps ("snapshots") to the descendant of each vertex. If not given, the default values is one.
 #'
@@ -21,27 +22,28 @@
 #'
 #' @param sort logical flag, specifying if the branches are ordered such that higher mass branches are more central
 #' @param spacetype integer, specifying how much horizontal space is allocated to each progenitor branch: 1=all progenitors get equal space, 2=proportional to number of leaves, 3=proportional to mass
-#' @param straightening real between 0 and 1 specifying the maximal mass-ratio up to which it is enforced that the  main progentior is strictly vertically above its descendant.
+#' @param straightening real between 0 and 1 specifying the maximal mass-ratio up to which it is enforced that the  main progenitor is strictly vertically above its descendant.
 #' @param simplify logical flag. If TRUE, all the vertices, other than the root, with only one progenitor are removed for graphical simplicity.
 #' @param style integer value to specify the rendering: 1=straight lines, 2=splines, 3=polygon splines with optimal vertex-matching, 4=same as (3) but with round connectors
 #' @param root.length length of the root branch, extending down from the root halo
 #' @param leaf.length length of the leaf branches, extending up from the leaves
-#' @param col color of the edges; or a vector of colors if values have been specified in the tree
-#' @param margin thickness of margin surrouding the plot
+#' @param col colour of the edges; or a vector of colours if values have been specified in the tree
+#' @param margin thickness of margin surrounding the plot
 #' @param draw.edges logical flag to turn on/off edges
 #' @param draw.vertices logical flag to turn on/off vertices
 #' @param draw.box logical flag to turn on/off a black frame around the box
 #' @param add logical flag specifying whether the plot should be added to an existing plot
-#' @param xlim horizontal range of the tree with margin (expecially needed if add = FALSE)
+#' @param xlim horizontal range of the tree with margin (especially needed if add = FALSE)
 #' @param ylim vertical range of the tree with margin (only needed if add = FALSE)
 #' @param scale scaling factor to convert masses into line widths
 #' @param gamma scaling exponent to convert masses into line widths
 #' @param min minimum linewidth
 #' @param vertex.size scaling factor of the vertex size
-#' @param pdf.filename optional filename of a PDF file to be saved
+#' @param pdf.filename optional file name of a PDF file to be saved
 #' @param pdf.size optional size of the PDF image
 #' @param forced.x optional vector allowing the user to enforce the x-positions of individual nodes. Use NAs for automatic values.
 #' @param forced.y optional vector allowing the user to enforce the y-positions of individual nodes. Use NAs for automatic values.
+#' @param overlap optional number specifying a small vertical overlap between branches to avoid spurious gaps in graphical outputs
 #'
 #' @examples
 #'
@@ -83,7 +85,8 @@ plottree = function(
   pdf.filename = NULL,
   pdf.size = 5,
   forced.x = NULL,
-  forced.y = NULL) {
+  forced.y = NULL,
+  overlap = 1e-3) {
 
   # make default tree, if not given
   if (is.null(tree)) {
@@ -162,7 +165,7 @@ plottree = function(
     tree$length = rep(1,n)
   } else {
     if (length(tree$length)!=n) stop("The 'length' vector must have the same length as the 'descendant' vector.")
-    if (min(tree$mass)<=0) stop("All values of the 'length' vector must be positive.")
+    if (min(tree$length)<=0) stop("All values of the 'length' vector must be positive.")
   }
 
   # convert to data table
@@ -266,10 +269,14 @@ plottree = function(
 
     # draw edges
     if (draw.edges) {
+      
       edges = sort.int(tree$y, decreasing = TRUE,index.return = TRUE)$ix
       edges = edges[edges!=root]
       s = .scurve()
+      npoints = length(s$x)
+      
       for (i in edges) {
+        
         j = tree$descendant[i]
         direction = sign(tree$x[j]-tree$x[i])
         if (direction==0) direction=1
@@ -292,17 +299,32 @@ plottree = function(
           f = tree$lwd[progenitors[index]]/sum(tree$lwd[progenitors])
           lwdj = tree$lwd[j]*f[index.0]
           xj = tree$x[j]-tree$lwd[j]+2*tree$lwd[j]*sum(f[index.left])+f[index.0]*tree$lwd[j]
-          sx = s$x*(tree$x[i]-xj)+xj
-          eps = (tree$y[i]-tree$y[j])*2e-3
-          sy = s$y*(tree$y[i]+eps-tree$y[j])+tree$y[j]+eps
-          sdxdy = s$dxdy*(tree$x[i]-xj)/(tree$y[i]-tree$y[j])
-          f = sdxdy^2+1e-10
-          ds = seq(lwdj,tree[i]$lwd,length.out=length(sx))
-          dx = ds/sqrt(1+f)*direction
-          dy = ds/sqrt(1+1/f)
-          px = c(sx+dx,rev(sx-dx))
-          py = c(sy+dy,rev(sy-dy))
+          x0 = xj; ax = (tree$x[i]-xj)
+          y0 = tree$y[j]; ay = tree$y[i]-tree$y[j]
+          sx = x0+ax*s$x
+          sy = y0+ay*s$y
+          ds = seq(lwdj,tree[i]$lwd,length=npoints) # required distances to the central line
+          dxp = dxn = ds
+          for (it in seq(5)) {
+            xp = sx+dxp
+            xn = sx-dxn
+            distp = distn = rep(1e99,npoints)
+            for (k in seq(npoints)) {
+              distp[k] = sqrt(optimise(function(g) (x0+ax*(3*g^2-2*g^3)-xp[k])^2+(y0+ay*g-sy[k])^2,c(0,1))$objective)
+              distn[k] = sqrt(optimise(function(g) (x0+ax*(3*g^2-2*g^3)-xn[k])^2+(y0+ay*g-sy[k])^2,c(0,1))$objective)
+            }
+            aggressiveness=0.9
+            dxp = dxp*(ds/distp)^aggressiveness
+            dxn = dxn*(ds/distn)^aggressiveness
+          }
+          f = seq(0,1,length=npoints)
+          f = sin(f*pi)^0.33
+          px = c(sx+dxp*f+(1-f)*ds,rev(sx-dxn*f-(1-f)*ds))
+          sy[1] = sy[1]-overlap*(ylim[2]-ylim[1])
+          sy[npoints] = sy[npoints]+overlap*(ylim[2]-ylim[1])
+          py = c(sy,rev(sy))
           polygon(px,py,col=tree$col[i],border=NA)
+          lines(sx,sy,col='red')
           if (tree$n.progenitors[i]>1) {
             if (style==4) {
               plotrix::draw.circle(tree$x[i],tree$y[i],tree$lwd[i],border=NA,col=tree$col[i])
@@ -439,14 +461,13 @@ plottree = function(
   invisible(tree)
 }
 
-.scurve = function(q=0.5,n=100,dy=1e-2) {
+.scurve = function(q=0.5,nhalf=30) {
   a = -8+16*q
   b = 14-32*q
   c = -5+16*q
-  y = seq(0,1,length=n)
+  y = seq(0,1,length=nhalf)^2
+  y = c(y[1:(nhalf-1)]/2,1-rev(y)/2)
   x = a*y^4+b*y^3+c*y^2
-  dxdy = 4*a*y^3+3*b*y^2+2*c*y
-  y[1] = y[1]-dy
-  y[n] = y[n]+dy
-  return(list(x=x,y=y,dxdy=dxdy))
+  #dxdy = 4*a*y^3+3*b*y^2+2*c*y
+  return(list(x=x,y=y))
 }

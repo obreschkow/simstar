@@ -4,14 +4,34 @@
 \alias{sphview}
 \title{Visualise one or seveal 3D point sets}
 \usage{
-sphview(x, species, col = c("#ff0010", "#0515ff", "green", "orange",
-  "yellow", "purple"), center = NULL, xlim = NULL, ylim = NULL,
-  auto.scale = 1, screen = TRUE, pngfile = NULL, pdffile = NULL,
-  rotation = 1, kde = TRUE, ngrid = 300, title = NULL,
-  title.origin = NULL, lum = 1, shadows = 1, sigma = 1,
-  arrows = TRUE, arrow.origin = NULL, arrow.length = NULL,
-  arrow.lwd = 1.5, side = NULL, xlab = NULL, ylab = NULL,
-  cex = 1)
+sphview(
+  x,
+  species,
+  col = c("#ff0010", "#0515ff", "green", "orange", "yellow", "purple"),
+  center = NULL,
+  xlim = NULL,
+  ylim = NULL,
+  auto.scale = 1,
+  screen = TRUE,
+  pngfile = NULL,
+  pdffile = NULL,
+  rotation = 1,
+  kde = TRUE,
+  ngrid = 300,
+  title = NULL,
+  title.origin = NULL,
+  lum = 1,
+  shadows = 1,
+  sigma = 1,
+  arrows = TRUE,
+  arrow.origin = NULL,
+  arrow.length = NULL,
+  arrow.lwd = 1.5,
+  side = NULL,
+  xlab = NULL,
+  ylab = NULL,
+  cex = 1
+)
 }
 \arguments{
 \item{x}{n-by-3 matrix, representing the 3D-coordinates of n particles.}
@@ -34,7 +54,7 @@ sphview(x, species, col = c("#ff0010", "#0515ff", "green", "orange",
 
 \item{pdffile}{optional pdf-filename to save the image as pdf-file.}
 
-\item{rotation}{either an integer (1-6) or a 3-vector specifying a rotationn of the 3D particle positions. In case of an integer: 1=(x,y)-plane, 2=(y,z)-plane, 3=(x,y)-plane, 4=(qmax,qmin)-plane, 5=(qmax,qmid)-plane, 6=(qmid,qmin)-plane, where qmax/qmid/qmin are the eigenvectors of the particle-quadrupole, associated with the maximum/middle/minimum eigenvalues, respectively. If \code{rotation} is a vector, its direction specifies the rotation axis and its norm the rotation angle in radians in the positive geometric sense.}
+\item{rotation}{either an integer (1-6), a 3-vector or a 3-by-3 matrix, specifying a rotation of the 3D particle positions. In case of an integer: 1=(x,y)-plane, 2=(y,z)-plane, 3=(x,y)-plane, 4=(qmax,qmin)-plane, 5=(qmax,qmid)-plane, 6=(qmid,qmin)-plane, where qmax/qmid/qmin are the eigenvectors of the particle-quadrupole, associated with the maximum/middle/minimum eigenvalues, respectively. If \code{rotation} is a vector, its direction specifies the rotation axis and its norm the rotation angle in radians in the positive geometric sense.}
 
 \item{kde}{logical flag, specifying whether the particles are smoothed using an addaptive kernel density estimator.}
 
