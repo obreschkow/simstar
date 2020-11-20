@@ -47,7 +47,7 @@ sphview(
 \arguments{
 \item{x}{n-by-3 matrix, representing the 3D-coordinates of n particles. It can also be a list with Gadget data, returned by the function \code{snapread} in the \code{snapshot} package by A. Robotham.}
 
-\item{species}{optional n-element vector giving the integer species indices, which will specify the color of the particles. If not given, all particles will have the first colour given in the vector \code{col}.}
+\item{species}{optional argument. If \code{x} is a n-by-3 matrix, \code{species} is a n-element vector giving the integer species indices, which will specify the color of the particles; if not given, all particles will be assumed to be of species=1. If \code{x} is a \code{snapshot} list, \code{species} is a single integer or a vector of integer specifying the species to select; if not given, all species are plotted.}
 
 \item{value}{optional n-element vector specifying the particle property (e.g. temperatures) to be shown in color. If given, this overwrites the colors set by \code{species}.}
 

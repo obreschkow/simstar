@@ -9,7 +9,7 @@
 #' @description Produces a square raster image visualising particle positions in 3D N-body/SPH data.
 #'
 #' @param x n-by-3 matrix, representing the 3D-coordinates of n particles. It can also be a list with Gadget data, returned by the function \code{snapread} in the \code{snapshot} package by A. Robotham.
-#' @param species optional n-element vector giving the integer species indices, which will specify the color of the particles. If not given, all particles will have the first colour given in the vector \code{col}.
+#' @param species optional argument. If \code{x} is a n-by-3 matrix, \code{species} is a n-element vector giving the integer species indices, which will specify the color of the particles; if not given, all particles will be assumed to be of species=1. If \code{x} is a \code{snapshot} list, \code{species} is a single integer or a vector of integer specifying the species to select; if not given, all species are plotted.
 #' @param value optional n-element vector specifying the particle property (e.g. temperatures) to be shown in color. If given, this overwrites the colors set by \code{species}.
 #' @param valrange 2-vector specifying the range of values covered by the colors in the vector \code{colorscale}.
 #' @param fix.brightness logical flag specifying whether the brightness of value-plots should scale with density.
@@ -73,8 +73,9 @@ sphview = function(x, species = NULL, value = NULL, valrange = NULL, fix.brightn
                    scale = TRUE, scale.origin = NULL, scale.length = NULL, scale.lwd = 1.5,
                    length.unit = '', xlab = NULL, ylab = NULL, cex=1) {
   
-  # handle x
+  # handle x and species
   if (is.array(x)) {
+    
     if (length(dim(x))==2) {
       n = dim(x)[1]
       if (dim(x)[2]==2) x = cbind(x,rep(0,n))
@@ -82,14 +83,26 @@ sphview = function(x, species = NULL, value = NULL, valrange = NULL, fix.brightn
     } else {
       stop('x must be an n-by-3 dimensional array')
     }
+    
   } else if (is.list(x)) {
+    
     if (is.null(x$head)) stop('if x is a list, it must contain an item "head"')
     if (is.null(x$part)) stop('if x is a list, it must contain an item "part"')
     if (is.null(width)) width = x$head$BoxSize
     if (is.null(center)) center = rep(x$head$BoxSize/2,3)
-    species = rep(1:6,x$head$Npart)
+    s = rep(1:6,x$head$Npart)
     x = cbind(x$part$x,x$part$y,x$part$z)
+    if (is.null(species)) {
+      species = s
+    } else {
+      if (min(species)<1) stop('species cannot be smaller than 1')
+      if (max(species)>6) stop('species cannot be larger than 6')
+      sel = s%in%species
+      x = x[sel,]
+      species = s[sel]
+    }
     n = dim(x)[1]
+    
   } else {
     stop('x must be an n-by-3 dimensional array or a list of the appropriate form')
   }
