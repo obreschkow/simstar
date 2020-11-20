@@ -24,7 +24,8 @@
 #' @param spacetype integer, specifying how much horizontal space is allocated to each progenitor branch: 1=all progenitors get equal space, 2=proportional to number of leaves, 3=proportional to mass
 #' @param straightening real between 0 and 1 specifying the maximal mass-ratio up to which it is enforced that the  main progenitor is strictly vertically above its descendant.
 #' @param simplify logical flag. If TRUE, all the vertices, other than the root, with only one progenitor are removed for graphical simplicity.
-#' @param style integer value to specify the rendering: 1=straight lines, 2=splines, 3=polygon splines with optimal vertex-matching, 4=same as (3) but with round connectors
+#' @param style integer value to specify the rendering: 1=straight lines, 2=splines, 3=polygon splines with optimal vertex-matching
+#' @param circle.height real between 0 and 1 specifying the relative vertical height of circles drawn at the nodes (only with style=3)
 #' @param root.length length of the root branch, extending down from the root halo
 #' @param leaf.length length of the leaf branches, extending up from the leaves
 #' @param col colour of the edges; or a vector of colours if values have been specified in the tree
@@ -33,8 +34,8 @@
 #' @param draw.vertices logical flag to turn on/off vertices
 #' @param draw.box logical flag to turn on/off a black frame around the box
 #' @param add logical flag specifying whether the plot should be added to an existing plot
-#' @param xlim horizontal range of the tree with margin (especially needed if add = FALSE)
-#' @param ylim vertical range of the tree with margin (only needed if add = FALSE)
+#' @param xlim horizontal range of the tree with margin (only needed if add = TRUE)
+#' @param ylim vertical range of the tree with margin (only needed if add = TRUE)
 #' @param scale scaling factor to convert masses into line widths
 #' @param gamma scaling exponent to convert masses into line widths
 #' @param min minimum linewidth
@@ -68,6 +69,7 @@ plottree = function(
   straightening = 0,
   simplify = FALSE,
   style = 3,
+  circle.height = 0,
   root.length = 0.5,
   leaf.length = 0.5,
   margin = 0.03,
@@ -171,21 +173,37 @@ plottree = function(
   # convert to data table
   tree = data.table::as.data.table(tree)
 
-  # normalize masses
-  if (normalize.mass) tree$mass = tree$mass/tree$mass[root]
-
+  # normalize masses (these are the masses at the beginning, i.e. top of each branch)
+  tree$m = tree$mass
+  if (normalize.mass) tree$m = tree$m/tree$m[root]
+  
   # assign line widths
-  tree$lwd = pmax(min,tree$mass^gamma*scale)*0.01
+  mass2lwd = function(mass) pmax(min,mass^gamma*scale)*0.01
+  tree$lwd = mass2lwd(tree$m) # line-width at top of branch
+  
+  # widths at bottom of of each branch
+  tree$lwd2 = rep(NA,n)
+  for (i in seq(n)) {
+    if (tree$n.progenitors[i]>0) {
+      progenitors = which(tree$descendant==i)
+      lwdtot = sum(tree$lwd[progenitors])
+      for (j in progenitors) {
+        tree$lwd2[j] = tree$lwd[j]/lwdtot*tree$lwd[i]
+      }
+    }
+  }
+  tree$lwd2[root] = tree$lwd[root]
 
   # simplify tree
   if (simplify) {
-    remove = tree$n.progenitors==1
+    remove = tree$n.progenitors==1 & tree$descendant!=0
     keep = !remove
     shift = cumsum(remove)
     for (i in seq(n)[-root]) {
       if (keep[i]) {
         j = tree$descendant[i]
-        while (j!=root & remove[j]) {
+        while (remove[j]) {
+          tree$lwd2[i] = tree$lwd2[j]
           j = tree$descendant[j]
           tree$length[i] = tree$length[i]+1
         }
@@ -287,47 +305,93 @@ plottree = function(
           sy = s$y*(tree$y[i]-tree$y[j])+tree$y[j]
           lines(sx,sy,lwd=tree$lwd[i],col=tree$col[i])
         } else if (style==3 | style==4) {
-          progenitors = which(tree$descendant==j)
-          np = length(progenitors)
-          index = sort.int(tree$x[progenitors],index.return = TRUE)$ix
-          index.0 = which(progenitors[index]==i)
-          if (index.0>1) {
-            index.left = seq(1,index.0-1)
+          
+          # coordinates at top end of branch
+          x1 = tree$x[i]
+          y1 = tree$y[i]
+          
+          # consider siblings of note i
+          siblings = which(tree$descendant==j) # siblings of node i
+          ns = length(siblings) # number of siblings
+          
+          if (ns==1) {
+            
+            x2 = tree$x[j]
+            y2 = tree$y[j]
+            
           } else {
-            index.left = NULL
-          }
-          f = tree$lwd[progenitors[index]]/sum(tree$lwd[progenitors])
-          lwdj = tree$lwd[j]*f[index.0]
-          xj = tree$x[j]-tree$lwd[j]+2*tree$lwd[j]*sum(f[index.left])+f[index.0]*tree$lwd[j]
-          x0 = xj; ax = (tree$x[i]-xj)
-          y0 = tree$y[j]; ay = tree$y[i]-tree$y[j]
-          sx = x0+ax*s$x
-          sy = y0+ay*s$y
-          ds = seq(lwdj,tree[i]$lwd,length=npoints) # required distances to the central line
-          dxp = dxn = ds
-          for (it in seq(5)) {
-            xp = sx+dxp
-            xn = sx-dxn
-            distp = distn = rep(1e99,npoints)
-            for (k in seq(npoints)) {
-              distp[k] = sqrt(optimise(function(g) (x0+ax*(3*g^2-2*g^3)-xp[k])^2+(y0+ay*g-sy[k])^2,c(0,1))$objective)
-              distn[k] = sqrt(optimise(function(g) (x0+ax*(3*g^2-2*g^3)-xn[k])^2+(y0+ay*g-sy[k])^2,c(0,1))$objective)
+            
+            # sort siblings from left to right
+            index = sort.int(tree$x[siblings],index.return = TRUE)$ix # order from left to right
+            siblings = siblings[index]
+            
+            # identify siblings left of node i
+            index.0 = which(siblings==i) # position of node i amongst its siblings (from left to right)
+            if (index.0>1) {
+              index.left = seq(1,index.0-1)
+            } else {
+              index.left = NULL
             }
-            aggressiveness=0.9
-            dxp = dxp*(ds/distp)^aggressiveness
-            dxn = dxn*(ds/distn)^aggressiveness
+          
+            # spatial separation between siblings (can be negative)
+            h = 2*(tree$lwd[j]-sum(tree$lwd2[siblings]))/(ns-1)
+            x2 = tree$x[j]-tree$lwd[j]+(index.0-1)*h+2*sum(tree$lwd2[siblings[index.left]])+tree$lwd2[i]
+            y2 = tree$y[j]
+            
           }
-          f = seq(0,1,length=npoints)
-          f = sin(f*pi)^0.33
-          px = c(sx+dxp*f+(1-f)*ds,rev(sx-dxn*f-(1-f)*ds))
-          sy[1] = sy[1]-overlap*(ylim[2]-ylim[1])
-          sy[npoints] = sy[npoints]+overlap*(ylim[2]-ylim[1])
+          
+          # make central spline
+          sx = x2+(x1-x2)*s$x
+          sy = y2+(y1-y2)*s$y
+          
+          # make horizontal half-width
+          dx = seq(tree$lwd2[i],tree$lwd[i],len=length(sx))
+            
+          
+          # make coordinates of bottom end of branch descending from i
+          #f = tree$lwd[progenitors[index]]/sum(tree$lwd[progenitors])
+          # lwdj = tree$lwd2[i]#*f[index.0]
+          # xj = tree$x[j]-tree$lwd2[i]+2*tree$lwd2[i]*sum(f[index.left])+f[index.0]*tree$lwd2[i]
+          # 
+          # 
+          # x0 = xj; ax = (tree$x[i]-xj)
+          # y0 = tree$y[j]; ay = tree$y[i]-tree$y[j]
+          # sx = x0+ax*s$x
+          # sy = y0+ay*s$y
+          # ds = seq(lwdj,tree[i]$lwd,length=npoints) # required distances to the central line
+          # dxp = dxn = ds
+          # for (it in seq(5)) {
+          #   xp = sx+dxp
+          #   xn = sx-dxn
+          #   distp = distn = rep(1e99,npoints)
+          #   for (k in seq(npoints)) {
+          #     distp[k] = sqrt(optimise(function(g) (x0+ax*(3*g^2-2*g^3)-xp[k])^2+(y0+ay*g-sy[k])^2,c(0,1))$objective)
+          #     distn[k] = sqrt(optimise(function(g) (x0+ax*(3*g^2-2*g^3)-xn[k])^2+(y0+ay*g-sy[k])^2,c(0,1))$objective)
+          #   }
+          #   aggressiveness=0.9
+          #   dxp = dxp*(ds/distp)^aggressiveness
+          #   dxn = dxn*(ds/distn)^aggressiveness
+          # }
+          #f = seq(0,1,length=npoints)
+          #f = thickening*sin(f*pi)^0.33
+          #px = c(sx+dxp*f+(1-f)*ds,rev(sx-dxn*f-(1-f)*ds))
+          #sy[1] = sy[1]-overlap*(ylim[2]-ylim[1])
+          #sy[npoints] = sy[npoints]+overlap*(ylim[2]-ylim[1])
+          
+          # draw central lines
+          if (abs(y2-y1)/(ylim[2]-ylim[1])<0.01) {
+            lines(sx,sy,col=tree$col[i])
+          }
+          
+          # draw polygon
+          px = c(sx+dx,rev(sx-dx))
           py = c(sy,rev(sy))
           polygon(px,py,col=tree$col[i],border=NA)
-          lines(sx,sy,col='red')
-          if (tree$n.progenitors[i]>1) {
-            if (style==4) {
-              plotrix::draw.circle(tree$x[i],tree$y[i],tree$lwd[i],border=NA,col=tree$col[i])
+          
+          # draw circle
+          if (circle.height>0) {
+            if (tree$n.progenitors[i]>1) {
+              plotrix::draw.ellipse(tree$x[i],tree$y[i],tree$lwd[i],tree$lwd[i]*circle.height,border=NA,col=tree$col[i])
             }
           }
         }
@@ -338,7 +402,7 @@ plottree = function(
     # draw vertices
     if (draw.vertices) {
       vertices = seq(n.native)
-      cex = pmax(min,tree$mass^gamma*scale)*3*vertex.size
+      cex = mass2lwd(tree$m)*300*vertex.size
       points(tree$x[vertices],tree$y[vertices],pch=16,cex=cex[vertices])
     }
 
@@ -365,16 +429,20 @@ plottree = function(
 
   # determine horizontal space fraction assigned to each progenitor
   if (spacetype==3) {
-    f = tree$mass[progenitors]/sum(tree$mass[progenitors]) # evently space by mass
+    f = tree$m[progenitors]/sum(tree$m[progenitors]) # evenly space by mass
   } else if (spacetype==2) {
     f = tree$n.leaves[progenitors]/sum(tree$n.leaves[progenitors]) # evenly space by leaves
   } else if (spacetype==1) {
     f = rep(1/np,np)
+  } else if (spacetype>2 & spacetype<3) {
+    f2 = tree$n.leaves[progenitors]/sum(tree$n.leaves[progenitors]) # evenly space by leaves
+    f3 = tree$m[progenitors]/sum(tree$m[progenitors]) # evenly space by mass
+    f = f2*(3-spacetype)+f3*(spacetype-2)
   }
 
   # order progenitors if requested and divide into left and right or main progenitor
   if (sort) {
-    index = sort.int(tree$mass[progenitors],index.return = T)$ix
+    index = sort.int(tree$m[progenitors],index.return = T,decreasing = F)$ix
     if (np>1) {
       index.1 = index[seq(1,np-1,by=2)]
     } else {
@@ -395,7 +463,7 @@ plottree = function(
     }
   } else {
     index = seq(np)
-    index.0 = which.max(tree$mass[progenitors])[1]
+    index.0 = which.max(tree$m[progenitors])[1]
     if (index.0>1) {
       index.left = seq(1,index.0-1)
     } else {
@@ -413,8 +481,8 @@ plottree = function(
   xmax = tree$xmax[i]
 
   # enforce main branch to be exactly vertical
-  m1 = max(tree$mass[progenitors])
-  m2 = max(tree$mass[progenitors]%%m1)
+  m1 = max(tree$m[progenitors])
+  m2 = max(tree$m[progenitors]%%m1)
   if (m2/m1<straightening) {
     space.left = sum(f[index.left])
     space.right = sum(f[index.right])

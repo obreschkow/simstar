@@ -67,8 +67,8 @@ surfsmovie = function(file.track, radius = NULL, aspect = 16/9,
     x0 = apply(x,2,mean) # geometric centre
     radius = sqrt(max(apply(t(t(x)-x0)^2,1,sum)))
   }
-  xlim = c(-1,1)*radius*sqrt(aspect)
-  ylim = c(-1,1)*radius/sqrt(aspect)
+  width = 2*radius*sqrt(aspect)
+  center = c(0,0,0)
   
   # determine scale
   if (length(rotation)==3) {
@@ -172,7 +172,7 @@ surfsmovie = function(file.track, radius = NULL, aspect = 16/9,
     }
     
     # make frame
-    rgb = sphview(x, track$particles$species, screen=FALSE, rotation=rot, xlim=xlim, ylim=ylim, ...)$rgb
+    rgb = sphview(x, track$particles$species, screen=FALSE, rotation=rot, center=center, width=width, ...)$rgb
     
     # add text to frame
     if (show.time) {

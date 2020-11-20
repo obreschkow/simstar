@@ -7,11 +7,11 @@
 #' @description Produces a 2-by-2 panel figure, where each panel is made of an \code{\link{sphview}} image in a different rotation.
 #'
 #' @param x n-by-3 matrix, representing the 3D-coordinates of n particles.
-#' @param species optional n-element vector giving the integer species indices, which will specify the color of the particles. If not given, all particles will have the first colour given in the vector \code{col}.
 #' @param rotations 4-vector or 4-element list specifying four different values/vectors of the argument \code{rotation} in \code{\link{sphview}}. These different rotations are shown in the bottom left, bottom right, top left, and top right panel, respectively, in this order.
 #' @param screen logical flag specifying whether the images is displayed on the screen.
 #' @param pdffile optional pdf-filename to save the image as pdf-file.
 #' @param title Text to be added to the figure.
+#' @param scale logical flag, specifying if a length scale is shown
 #' @param ... additional parameters for \code{\link{sphview}}.
 #' 
 #' @seealso \code{\link{sphview}}
@@ -23,11 +23,11 @@
 #' x.red = cooltools::runif3(1e5,polarangle = c(0,pi/2), azimuth = c(0,pi*0.75))
 #' x.blue = cooltools::runif3(1e5,polarangle = c(pi/2,pi), azimuth = c(pi*1.25,2*pi))
 #' x.green = t(t(cooltools::runif3(2e4,r=0.5))+c(1,1/4,-1))
-#' sphview4(rbind(x.red , x.blue, x.green), c(rep(1,1e5), rep(2,1e5), rep(3,2e4)), auto.scale=1.2)
+#' sphview4(rbind(x.red , x.blue, x.green), c(rep(1,1e5), rep(2,1e5), rep(3,2e4)))
 #'
 #' @export
 
-sphview4 = function(x, species, rotations=c(2,3,4,1), screen = TRUE, pdffile = NULL, title = NULL, ...) {
+sphview4 = function(x, rotations=c(2,3,4,1), screen = TRUE, pdffile = NULL, title = NULL, scale = TRUE, ...) {
 
   for (mode in seq(2)) {
 
@@ -52,7 +52,14 @@ sphview4 = function(x, species, rotations=c(2,3,4,1), screen = TRUE, pdffile = N
 
         par(fig=c(p[1]+(p[2]-p[1])*ix/2,p[1]+(p[2]-p[1])*(ix/2+0.5),p[3]+(p[4]-p[3])*iy/2,p[3]+(p[4]-p[3])*(iy/2+0.5)),
             new=TRUE, mar=c(0,0,0,0) )
-        sphview(x, species, rotation = rotations[[i]], pngfile = NULL, pdffile = NULL, screen = TRUE, ...)
+        
+        if (i==1) {
+          s = sphview(x, rotation = rotations[[i]], pngfile = NULL, pdffile = NULL, screen = TRUE, 
+                      scale=ifelse(i==2,scale,FALSE), ...)
+        } else {
+          s = sphview(x, rotation = rotations[[i]], pngfile = NULL, pdffile = NULL, screen = TRUE, 
+                      scale=ifelse(i==2,scale,FALSE), width=diff(s$xlim), ...)
+        }
         ix = (ix+1)%%2
         if (ix==0) iy = iy+1
 

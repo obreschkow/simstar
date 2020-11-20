@@ -1,4 +1,4 @@
-#' Visualise one or seveal 3D point sets
+#' Visualise one or several 3D point sets
 #' 
 #' @importFrom cooltools nplot rasterflip lim griddata2 kde2 quadrupole rotation3
 #' @importFrom png writePNG
@@ -8,29 +8,40 @@
 #'
 #' @description Produces a square raster image visualising particle positions in 3D N-body/SPH data.
 #'
-#' @param x n-by-3 matrix, representing the 3D-coordinates of n particles.
+#' @param x n-by-3 matrix, representing the 3D-coordinates of n particles. It can also be a list with Gadget data, returned by the function \code{snapread} in the \code{snapshot} package by A. Robotham.
 #' @param species optional n-element vector giving the integer species indices, which will specify the color of the particles. If not given, all particles will have the first colour given in the vector \code{col}.
-#' @param col vector of colors, specifying the color of the species given in the optional species vector.
-#' @param center 3-vector specifying the coordinate at the center of the plot. The default is the center of mass.
-#' @param xlim 2-vector specifying the horizontal range of the image in the units of \code{x}. The default is c(-1,1) times the largest distance between the center of mass and all points, multiplied by \code{auto.scale}.
-#' @param ylim 2-vector specifying the vertical range of the image in the units of \code{x}. The default is c(-1,1) times the largest distance between the center of mass and all points, multiplied by \code{auto.scale}.
-#' @param auto.scale number of 2-vector specifying the scaling factor for the automatically determined xlim and ylim, if the latter are not specified by the user.
+#' @param value optional n-element vector specifying the particle property (e.g. temperatures) to be shown in color. If given, this overwrites the colors set by \code{species}.
+#' @param valrange 2-vector specifying the range of values covered by the colors in the vector \code{colorscale}.
+#' @param fix.brightness logical flag specifying whether the brightness of value-plots should scale with density.
+#' @param weight optional vector, specifying the weight of different particles.
+#' @param colspecies vector of colors, specifying the color of the species given in the optional \code{species} vector.
+#' @param colscale vector of colors used to shown the particle property given by the optional vectors \code{value}.
+#' @param center optional 3-vector specifying the coordinate at the center of the plot. The default is the geometric center (= center of mass, if all particle masses are equal), if \code{x} is a matrix; and the box center, if \code{x} is a Gadget snapshot list.
+#' @param width optional horizontal range of the image in the length units of \code{x}. The default corresponds to the full range of particle positions, if \code{x} is a matrix; and to the box size, if \code{x} is a Gadget snapshot list.
+#' @param aspect aspect ratio (= width/height).
+#' @param thickness optional thickness in length units of \code{x} of the slice to be plotted. If not given, all particles are shown.
+#' @param subsampling fraction of particles to be used (if 1, all particles are used, if <1 a random subsample is drawn)
 #' @param screen logical flag specifying whether the images is displayed on the screen.
 #' @param pngfile optional png-filename to save the image as raster image.
 #' @param pdffile optional pdf-filename to save the image as pdf-file.
 #' @param rotation either an integer (1-6), a 3-vector or a 3-by-3 matrix, specifying a rotation of the 3D particle positions. In case of an integer: 1=(x,y)-plane, 2=(y,z)-plane, 3=(x,y)-plane, 4=(qmax,qmin)-plane, 5=(qmax,qmid)-plane, 6=(qmid,qmin)-plane, where qmax/qmid/qmin are the eigenvectors of the particle-quadrupole, associated with the maximum/middle/minimum eigenvalues, respectively. If \code{rotation} is a vector, its direction specifies the rotation axis and its norm the rotation angle in radians in the positive geometric sense.
-#' @param kde logical flag, specifying whether the particles are smoothed using an addaptive kernel density estimator.
-#' @param ngrid number of grid cells per side in the output image. If the image is not square ngrid is interpreted as the geometric mean between the horizontal and the vertical number of pixels, such that the total number of pixels remains about ngrid^2.
+#' @param ngrid optional number of grid cells per side in the output image. If the image is not square ngrid is interpreted as the geometric mean between the horizontal and the vertical number of pixels, such that the total number of pixels remains about ngrid^2.
 #' @param title Text to be added to the figure.
 #' @param title.origin optional 2-vector specifying the position of the title
 #' @param lum overall luminosity scaling factor (default 1).
 #' @param shadows differential luminosity scaling factor for darker regions (default 1).
-#' @param sigma relative smoothing scale (default 1). 
-#' @param arrows logical flag, specifying if axis-arrows are drawn.
-#' @param arrow.origin optional 2-vector specifying the origin of the arrows
-#' @param arrow.length optional number specitying the length of the arrows
+#' @param freeze.lum logical flag (default FALSE). If set to TRUE, the luminosity will not be adjusted as a function of the visible particles. This is normally needed to avoid flickering in animations.
+#' @param sigma smoothing scale in simulation units. The default is NULL, meaning that a value is picked automatically. 
+#' @param kde logical flag, specifying whether the particles are smoothed using an adaptive kernel density estimator.
+#' @param arrows logical flag, specifying if axis-arrows are drawn
+#' @param arrow.origin optional 2-vector specifying the bottom left corner of the arrows
+#' @param arrow.length optional number specifying the length of the arrows
 #' @param arrow.lwd line width of arrows
-#' @param side vector made of up to four integer values (1/2/3/4), specifying which axes with tick marks are to be drawn (see \code{\link{axis}}).
+#' @param scale logical flag, specifying if a length scale is shown
+#' @param scale.origin optional 2-vector specifying the right end of the length scale
+#' @param scale.length optional number specifying the length of the length scale (is always rounded to one significant digit)
+#' @param scale.lwd line width of length scale
+#' @param length.unit character string of length unit (e.g. "m" or "kpc")
 #' @param xlab label on horizontal arrow (only shown if \code{arrows=TRUE}).
 #' @param ylab label on vertical arrow (only shown if \code{arrows=TRUE}).
 #' @param cex text size
@@ -48,20 +59,20 @@
 #' # Example of 2x1e5 particles representing a homogenous sphere contained in another sphere
 #' x.red = cooltools::runif3(1e5, r = c(0,0.5))
 #' x.blue = cooltools::runif3(1e5)
-#' sphview(rbind(x.red,x.blue), c(rep(1,1e5),rep(2,1e5)), auto.scale=1.2)
+#' sphview(rbind(x.red,x.blue), c(rep(1,1e5),rep(2,1e5)))
 #'
 #' @export
 
-sphview = function(x, species, col = c('#ff0010', '#0515ff', 'green', 'orange', 'yellow', 'purple'),
-                   center = NULL, xlim = NULL, ylim = NULL, auto.scale = 1, screen = TRUE, pngfile = NULL, pdffile = NULL,
-                   rotation = 1, kde = TRUE, ngrid = 300, title = NULL, title.origin = NULL, lum = 1, shadows = 1, sigma = 1,
+sphview = function(x, species = NULL, value = NULL, valrange = NULL, fix.brightness = TRUE, weight = NULL, 
+                   colspecies = c('#ff0010', '#0515ff', 'green', 'orange', 'yellow', 'purple'),
+                   colscale = cooltools::spectrumcolors(1000),
+                   center = NULL, width = NULL, aspect = 1, thickness = NULL, subsampling = 1, screen = TRUE, pngfile = NULL, pdffile = NULL,
+                   rotation = 1, ngrid = 300, title = NULL, title.origin = NULL,
+                   lum = 1, shadows = 1, freeze.lum = FALSE, sigma = NULL, kde = TRUE,
                    arrows = TRUE, arrow.origin = NULL, arrow.length = NULL, arrow.lwd = 1.5,
-                   side = NULL, xlab = NULL, ylab = NULL, cex=1) {
+                   scale = TRUE, scale.origin = NULL, scale.length = NULL, scale.lwd = 1.5,
+                   length.unit = '', xlab = NULL, ylab = NULL, cex=1) {
   
-  # rescale luminosity scale (values matched to typical sph halos)
-  lum = 0.15*lum
-  shadows = 2*shadows
-
   # handle x
   if (is.array(x)) {
     if (length(dim(x))==2) {
@@ -71,25 +82,55 @@ sphview = function(x, species, col = c('#ff0010', '#0515ff', 'green', 'orange', 
     } else {
       stop('x must be an n-by-3 dimensional array')
     }
+  } else if (is.list(x)) {
+    if (is.null(x$head)) stop('if x is a list, it must contain an item "head"')
+    if (is.null(x$part)) stop('if x is a list, it must contain an item "part"')
+    if (is.null(width)) width = x$head$BoxSize
+    if (is.null(center)) center = rep(x$head$BoxSize/2,3)
+    species = rep(1:6,x$head$Npart)
+    x = cbind(x$part$x,x$part$y,x$part$z)
+    n = dim(x)[1]
   } else {
-    stop('x must be an n-by-3 dimensional array')
+    stop('x must be an n-by-3 dimensional array or a list of the appropriate form')
   }
   
   # handle species
-  if (is.null(species)) {
-    species = rep(1,n)
-  } else {
+  if (!is.null(species)) {
     if (length(species)!=n) stop('species must be a vector of same length as number of rows in x.')
     if (min(species)<1) stop('species must contain only positive integers.')
-    if (max(species)>length(col)) stop('not enough colours given to match the maximum species value.')
+    if (max(species)>length(colspecies)) stop('not enough colours given to match the maximum species value.')
+  }
+  
+  # handle values
+  if (!is.null(value)) {
+    if (length(value)!=n) stop('value must be a vector of same length as number of rows in x.')
+    if (is.null(valrange)) valrange = range(value)+c(-1e-5,1e-5)*(mean(abs(value))+1)
+  }
+  
+  # handle weights
+  if (!is.null(weight)) {
+    if (length(weight)!=n) stop('weight must be a vector of same length as number of rows in x.')
+  }
+  
+  # subsampling
+  if (subsampling<=0 | subsampling>1) stop('subsampling must be a value in the interval (0,1].')
+  if (subsampling<1) {
+    n.new = max(1,round(n*subsampling))
+    id = sample(n,n.new)
+    x = x[id,]
+    if (!is.null(species)) species = species[id]
+    if (!is.null(value)) value = value[id]
+    if (!is.null(weight)) weight = weight[id]
+    n = n.new
   }
 
-  # determine geometrix centre
-  x0 = apply(x,2,mean) # geometric centre
-
-  # plot parameters
-  mar = c(0,0,0,0)
-  col = t(col2rgb(col)/255)
+  # center points
+  if (is.null(center)) {
+    center = apply(x,2,mean) # geometric centre
+  } else {
+    if (length(center)==2) center=c(center,0)
+  }
+  x = t(t(x)-center)
 
   # rotation matrix
   if (length(rotation)==3) {
@@ -130,74 +171,144 @@ sphview = function(x, species, col = c('#ff0010', '#0515ff', 'green', 'orange', 
   } else {
     stop('rotation must be an integer 1,...,6, a real 3-vector, or a 3-by-3 matrix.')
   }
+  
+  # rotate coordinates
+  x = x%*%rot
 
-  # center points
-  if (is.null(center)) {
-    center = x0
-  } else {
-    if (length(center)==2) center=c(center,0)
+  # select slice
+  if (!is.null(thickness)) {
+    sel = abs(x[,3])<=thickness/2
+    n = sum(sel)
+    if (n==0) stop('No particles to plot. Consider increasing "thickness".')
+    x = x[sel,]
+    if (!is.null(species)) species = species[sel]
+    if (!is.null(value)) value = value[sel]
+    if (!is.null(weight)) weight = weight[sel]
   }
-  x = t(t(x)-center)
-
-  # determine xlim, ylim
-  radius = sqrt(max(apply(t(t(x)-x0)^2,1,sum)))
-  if (length(auto.scale)==1) auto.scale = rep(auto.scale,2)
-  if (is.null(xlim)) xlim = c(-radius,radius)*auto.scale[1]
-  if (is.null(ylim)) ylim = c(-radius,radius)*auto.scale[2]
-  width = xlim[2]-xlim[1]
-  height = ylim[2]-ylim[1]
-  diagonal = sqrt(width*height)
-  nx = round(ngrid*width/diagonal)
-  ny = round(ngrid*height/diagonal)
   
-  # determine arrows
-  if (is.null(arrow.origin)) arrow.origin = c(xlim[1],ylim[1])+0.05*diagonal
-  if (is.null(arrow.length)) arrow.length = 0.1*diagonal
-  if (is.null(title.origin)) title.origin = c(xlim[1]+0.06*diagonal,ylim[2]-0.06*diagonal)
+  # project coordinates
+  x = x[,1:2]
 
-  # rotate and project coordinates
-  x = (x%*%rot)[,1:2]
+  # determine plotting limits
+  if (is.null(width)) width = 2*max(abs(x[,1]))
+  height = width/aspect
+  xlim = c(-1,1)*width/2
+  ylim = c(-1,1)*height/2
+  mean.length = sqrt(width*height)
+  n.plot = sum(x[,1]>=xlim[1] & x[,1]<=xlim[2] & x[,2]>=ylim[1] & x[,2]<=ylim[2])
   
-  # raster data
-  smoothing = 0.008*sigma*ngrid
+  # determine arrows, scale, titles
+  if (is.null(arrow.origin)) arrow.origin = c(xlim[1],ylim[1])+0.05*mean.length
+  if (is.null(arrow.length)) arrow.length = 0.1*mean.length
+  if (is.null(scale.origin)) scale.origin = c(xlim[2]-0.05*mean.length,ylim[1]+0.05*mean.length)
+  if (is.null(scale.length)) scale.length = 0.1*mean.length
+  scale.length = signif(scale.length,1)
+  if (is.null(title.origin)) title.origin = c(xlim[1]+0.06*mean.length,ylim[2]-0.06*mean.length)
+  
+  # prepare grid
+  nx = round(ngrid*width/mean.length)
+  ny = round(ngrid*height/mean.length)
+  if (max(nx,ny)>8000) stop('Not more than 8000 pixels allowed on each side.')
+  dx = width/nx # pixel size in simulation length units
+  if (is.null(sigma)) {
+    smoothing = 0.008*ngrid
+  } else {
+    smoothing = sigma/dx # smoothing length in pixel
+  }
   img = array(0,c(nx,ny,3))
-  s = unique(species)
   
-  for (i in seq_along(s)) {
+  # prepare rastering
+  if (is.null(value) & is.null(species)) {
+    type = 0
+    s = 1
+    n.loop = 1
+    col = col2rgb(colspecies[1])/255
+  } else if (is.null(value) & !is.null(species)) {
+    type = 1
+    s = unique(species)
+    n.loop = length(s)
+    col = t(col2rgb(colspecies)/255)
+  } else {
+    type = 2
+    n.loop = 2
+    col = t(col2rgb(colscale)/255)
+  }
+  
+  n.eff = 0
+  w = weight
+  sel = seq(n)
+  
+  for (i in seq(n.loop)) {
     
-    sel = species==s[i]
-    if (smoothing==0) {
-      g = cooltools::griddata2(x[sel,1],x[sel,2],xlim=xlim,ylim=ylim,n=c(nx,ny))
-    } else {
-      if (kde) {
-        g = cooltools::kde2(x[sel,1],x[sel,2],xlim=xlim,ylim=ylim,n=c(nx,ny),s = 0.2*smoothing^0.5, sd.max=smoothing*2)
-        g$n = g$d
+    if (type == 1) {
+      sel = species==s[i]
+    } else if (type == 2) {
+      if (i==1) {
+        w = weight
       } else {
-        g = cooltools::griddata2(x[sel,1],x[sel,2],xlim=xlim,ylim=ylim,n=c(nx,ny))
-        g$n = EBImage::gblur(g$n,smoothing)
+        w = value
+        if (!is.null(weight)) w = w*weight
       }
     }
     
-    for (k in seq(3)) {
-      img[,,k] = img[,,k]+col[s[i],k]*g$n
+    if (smoothing==0) {
+      g = cooltools::griddata2(x[sel,1],x[sel,2],w=w[sel],xlim=xlim,ylim=ylim,n=c(nx,ny))
+      if (is.null(g$m)) g$m = g$n
+    } else {
+      if (kde) {
+        g = cooltools::kde2(x[sel,1],x[sel,2],w=w[sel],xlim=xlim,ylim=ylim,n=c(nx,ny),s = smoothing/8, sd.max=smoothing*2)
+        g$m = g$d
+      } else {
+        g = cooltools::griddata2(x[sel,1],x[sel,2],w=w[sel],xlim=xlim,ylim=ylim,n=c(nx,ny))
+        if (is.null(g$m)) g$m = g$n
+        g$m = EBImage::gblur(g$m,smoothing)
+      }
+    }
+    
+    if (type==0) {
+      for (k in seq(3)) {
+        img[,,k] = img[,,k]+col[k]*g$m
+      }
+      n.eff = n.eff+sum(g$m)
+    } else if (type==1) {
+      for (k in seq(3)) {
+        img[,,k] = img[,,k]+col[s[i],k]*g$m
+      }
+      n.eff = n.eff+sum(g$m)
+    } else if (type==2) {
+      if (i==1) {
+        img[,,1] = g$m
+        n.eff = n.eff+sum(g$m)
+      } else {
+        meanval = g$m/img[,,1]
+        meanval[!is.finite(meanval)] = NA
+      }
     }
 
   }
-
-  # finalize image
-  img = atan(img/n*ngrid^2*lum)/pi*2
-  f = 10^max(0,shadows)*2
+  
+  # rescale brightness
+  img = atan(img*ngrid^2/ifelse(freeze.lum,n,n.eff)*(0.4*lum)*ifelse(type==2,0.3,0.5))/pi*2
+  f = 10^max(0,2.1*shadows)
   img = log10(f*img+1)/log10(f+1)
-  img = cooltools::lim(img) # necessary be cause gblur sometimes produces very slightly negative values
-
+  img = cooltools::lim(img) # necessary because gblur sometimes produces very slightly negative values
+  if (type==2) {
+    if (fix.brightness) {
+      l = array(0.8,c(nx,ny))
+    } else {
+      l = img[,,1]
+    }
+    colid = pmin(length(colscale),pmax(1,round((meanval-valrange[1])/diff(valrange)*length(colscale)+0.5)))
+    colid[is.na(colid)] = length(colscale)+1
+    col = rbind(col,c(0,0,0))
+    for (k in seq(3)) {
+      img[,,k] = l*array(col[colid,k],c(nx,ny))
+    }
+  }
+  
   # save raster image as png
   if (!is.null(pngfile)) {
     png::writePNG(cooltools::rasterflip(img),pngfile)
-  }
-
-  # determine margin
-  for (i in seq(4)) {
-    if (i%in%side) mar[i]=3
   }
 
   # show on screen and save as pdf
@@ -211,43 +322,38 @@ sphview = function(x, species, col = c('#ff0010', '#0515ff', 'green', 'orange', 
 
     if (mode==2 & !is.null(pdffile)) {
       make = TRUE
-      grDevices::pdf(pdffile,width=7*width/diagonal,height=7*height/diagonal)
+      grDevices::pdf(pdffile,width=7*width/mean.length,height=7*height/mean.length)
     }
 
     if (make) {
 
       # initialize plot
-      cooltools::nplot(xlim=xlim, ylim=ylim, asp=1, mar=rep(0,4))
-
+      cooltools::nplot(xlim=xlim, ylim=ylim, asp=1)
+      
       # plot raster
       rasterImage(cooltools::rasterflip(img),xlim[1],ylim[1],xlim[2],ylim[2])
 
       # arrows
       if (arrows) {
+        arrows(arrow.origin[1],arrow.origin[2],arrow.origin[1]+arrow.length,arrow.origin[2],col='white',length = 0.1,angle=20,lwd=arrow.lwd)
+        arrows(arrow.origin[1],arrow.origin[2],arrow.origin[1],arrow.origin[2]+arrow.length,col='white',length = 0.1,angle=20,lwd=arrow.lwd)
         if (!is.null(xlab)) {
           text(arrow.origin[1]+arrow.length,arrow.origin[2],xlab,pos=4,col='white',cex=cex)
-          arrows(arrow.origin[1],arrow.origin[2],arrow.origin[1]+arrow.length,arrow.origin[2],col='white',length = 0.1,angle=20,lwd=arrow.lwd)
         }
         if (!is.null(ylab)) {
           text(arrow.origin[1],arrow.origin[2]+arrow.length,ylab,pos=3,col='white',cex=cex)
-          arrows(arrow.origin[1],arrow.origin[2],arrow.origin[1],arrow.origin[2]+arrow.length,col='white',length = 0.1,angle=20,lwd=arrow.lwd)
         }
+      }
+      
+      # length scale
+      if (scale) {
+        text(scale.origin[1]-scale.length/2,scale.origin[2],sprintf('%s %s',signif(scale.length,1),length.unit),pos=3,col='white',cex=cex)
+        lines(scale.origin[1]-c(0,scale.length),rep(scale.origin[2],2),col='white',lwd=scale.lwd)
       }
       
       # title
       if (!is.null(title)) text(title.origin[1], title.origin[2], title, pos=4, col='white', offset=-0.4)
-
-      # side axes
-      par(xpd=T)
-      rect(xlim[1],ylim[1],xlim[2],ylim[2])
-      par(xpd=F)
-      usr = par()$usr
-      par(usr=c(-1,1,-1,1)*radius)
-      for (i in seq(4)) {
-        if (i%in%side) axis(side=i)
-      }
-      par(usr=usr)
-
+      
       if (mode==2) {dev.off()}
 
     }
@@ -255,6 +361,6 @@ sphview = function(x, species, col = c('#ff0010', '#0515ff', 'green', 'orange', 
   }
   
   # return results
-  invisible(list(rgb = img, radius = radius, rotationmatrix = rot))
+  invisible(list(rgb = img, xlim = xlim, ylim = ylim, center=center, rotationmatrix = rot))
 
 }

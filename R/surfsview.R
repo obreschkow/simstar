@@ -21,7 +21,7 @@
 
 surfsview = function(haloid = 1, subhalos = T, snapshot = 199, at = NULL,
                      parameterset = 'L210_N1024-Hydro3D', species,
-                     fourprojections = FALSE, ...) {
+                     fourprojections = FALSE,...) {
   
   # check existence of surfsuite
   if (is.na(paths()$surfsuite)) stop('Please specify a surfsuite directory using paths(surfsuite = "...").')
@@ -50,11 +50,13 @@ surfsview = function(haloid = 1, subhalos = T, snapshot = 199, at = NULL,
   # visualize
   if (fourprojections) {
   
-    sphview4(x, dat$particles$species, ...)  
+    sphview4(x, species=dat$particles$species, ...)
+    invisible('no values returned when all four projections are displayed')
     
   } else {
     
-    sphview(x, dat$particles$species, ...)
+    s = sphview(x, species=dat$particles$species, ...)
+    invisible(s)
     
   }
   

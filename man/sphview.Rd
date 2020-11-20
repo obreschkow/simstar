@@ -2,51 +2,74 @@
 % Please edit documentation in R/sphview.R
 \name{sphview}
 \alias{sphview}
-\title{Visualise one or seveal 3D point sets}
+\title{Visualise one or several 3D point sets}
 \usage{
 sphview(
   x,
-  species,
-  col = c("#ff0010", "#0515ff", "green", "orange", "yellow", "purple"),
+  species = NULL,
+  value = NULL,
+  valrange = NULL,
+  fix.brightness = TRUE,
+  weight = NULL,
+  colspecies = c("#ff0010", "#0515ff", "green", "orange", "yellow", "purple"),
+  colscale = cooltools::spectrumcolors(1000),
   center = NULL,
-  xlim = NULL,
-  ylim = NULL,
-  auto.scale = 1,
+  width = NULL,
+  aspect = 1,
+  thickness = NULL,
+  subsampling = 1,
   screen = TRUE,
   pngfile = NULL,
   pdffile = NULL,
   rotation = 1,
-  kde = TRUE,
   ngrid = 300,
   title = NULL,
   title.origin = NULL,
   lum = 1,
   shadows = 1,
-  sigma = 1,
+  freeze.lum = FALSE,
+  sigma = NULL,
+  kde = TRUE,
   arrows = TRUE,
   arrow.origin = NULL,
   arrow.length = NULL,
   arrow.lwd = 1.5,
-  side = NULL,
+  scale = TRUE,
+  scale.origin = NULL,
+  scale.length = NULL,
+  scale.lwd = 1.5,
+  length.unit = "",
   xlab = NULL,
   ylab = NULL,
   cex = 1
 )
 }
 \arguments{
-\item{x}{n-by-3 matrix, representing the 3D-coordinates of n particles.}
+\item{x}{n-by-3 matrix, representing the 3D-coordinates of n particles. It can also be a list with Gadget data, returned by the function \code{snapread} in the \code{snapshot} package by A. Robotham.}
 
 \item{species}{optional n-element vector giving the integer species indices, which will specify the color of the particles. If not given, all particles will have the first colour given in the vector \code{col}.}
 
-\item{col}{vector of colors, specifying the color of the species given in the optional species vector.}
+\item{value}{optional n-element vector specifying the particle property (e.g. temperatures) to be shown in color. If given, this overwrites the colors set by \code{species}.}
 
-\item{center}{3-vector specifying the coordinate at the center of the plot. The default is the center of mass.}
+\item{valrange}{2-vector specifying the range of values covered by the colors in the vector \code{colorscale}.}
 
-\item{xlim}{2-vector specifying the horizontal range of the image in the units of \code{x}. The default is c(-1,1) times the largest distance between the center of mass and all points, multiplied by \code{auto.scale}.}
+\item{fix.brightness}{logical flag specifying whether the brightness of value-plots should scale with density.}
 
-\item{ylim}{2-vector specifying the vertical range of the image in the units of \code{x}. The default is c(-1,1) times the largest distance between the center of mass and all points, multiplied by \code{auto.scale}.}
+\item{weight}{optional vector, specifying the weight of different particles.}
 
-\item{auto.scale}{number of 2-vector specifying the scaling factor for the automatically determined xlim and ylim, if the latter are not specified by the user.}
+\item{colspecies}{vector of colors, specifying the color of the species given in the optional \code{species} vector.}
+
+\item{colscale}{vector of colors used to shown the particle property given by the optional vectors \code{value}.}
+
+\item{center}{optional 3-vector specifying the coordinate at the center of the plot. The default is the geometric center (= center of mass, if all particle masses are equal), if \code{x} is a matrix; and the box center, if \code{x} is a Gadget snapshot list.}
+
+\item{width}{optional horizontal range of the image in the length units of \code{x}. The default corresponds to the full range of particle positions, if \code{x} is a matrix; and to the box size, if \code{x} is a Gadget snapshot list.}
+
+\item{aspect}{aspect ratio (= width/height).}
+
+\item{thickness}{optional thickness in length units of \code{x} of the slice to be plotted. If not given, all particles are shown.}
+
+\item{subsampling}{fraction of particles to be used (if 1, all particles are used, if <1 a random subsample is drawn)}
 
 \item{screen}{logical flag specifying whether the images is displayed on the screen.}
 
@@ -56,9 +79,7 @@ sphview(
 
 \item{rotation}{either an integer (1-6), a 3-vector or a 3-by-3 matrix, specifying a rotation of the 3D particle positions. In case of an integer: 1=(x,y)-plane, 2=(y,z)-plane, 3=(x,y)-plane, 4=(qmax,qmin)-plane, 5=(qmax,qmid)-plane, 6=(qmid,qmin)-plane, where qmax/qmid/qmin are the eigenvectors of the particle-quadrupole, associated with the maximum/middle/minimum eigenvalues, respectively. If \code{rotation} is a vector, its direction specifies the rotation axis and its norm the rotation angle in radians in the positive geometric sense.}
 
-\item{kde}{logical flag, specifying whether the particles are smoothed using an addaptive kernel density estimator.}
-
-\item{ngrid}{number of grid cells per side in the output image. If the image is not square ngrid is interpreted as the geometric mean between the horizontal and the vertical number of pixels, such that the total number of pixels remains about ngrid^2.}
+\item{ngrid}{optional number of grid cells per side in the output image. If the image is not square ngrid is interpreted as the geometric mean between the horizontal and the vertical number of pixels, such that the total number of pixels remains about ngrid^2.}
 
 \item{title}{Text to be added to the figure.}
 
@@ -68,17 +89,29 @@ sphview(
 
 \item{shadows}{differential luminosity scaling factor for darker regions (default 1).}
 
-\item{sigma}{relative smoothing scale (default 1).}
+\item{freeze.lum}{logical flag (default FALSE). If set to TRUE, the luminosity will not be adjusted as a function of the visible particles. This is normally needed to avoid flickering in animations.}
 
-\item{arrows}{logical flag, specifying if axis-arrows are drawn.}
+\item{sigma}{smoothing scale in simulation units. The default is NULL, meaning that a value is picked automatically.}
 
-\item{arrow.origin}{optional 2-vector specifying the origin of the arrows}
+\item{kde}{logical flag, specifying whether the particles are smoothed using an adaptive kernel density estimator.}
 
-\item{arrow.length}{optional number specitying the length of the arrows}
+\item{arrows}{logical flag, specifying if axis-arrows are drawn}
+
+\item{arrow.origin}{optional 2-vector specifying the bottom left corner of the arrows}
+
+\item{arrow.length}{optional number specifying the length of the arrows}
 
 \item{arrow.lwd}{line width of arrows}
 
-\item{side}{vector made of up to four integer values (1/2/3/4), specifying which axes with tick marks are to be drawn (see \code{\link{axis}}).}
+\item{scale}{logical flag, specifying if a length scale is shown}
+
+\item{scale.origin}{optional 2-vector specifying the right end of the length scale}
+
+\item{scale.length}{optional number specifying the length of the length scale (is always rounded to one significant digit)}
+
+\item{scale.lwd}{line width of length scale}
+
+\item{length.unit}{character string of length unit (e.g. "m" or "kpc")}
 
 \item{xlab}{label on horizontal arrow (only shown if \code{arrows=TRUE}).}
 
@@ -99,7 +132,7 @@ Produces a square raster image visualising particle positions in 3D N-body/SPH d
 # Example of 2x1e5 particles representing a homogenous sphere contained in another sphere
 x.red = cooltools::runif3(1e5, r = c(0,0.5))
 x.blue = cooltools::runif3(1e5)
-sphview(rbind(x.red,x.blue), c(rep(1,1e5),rep(2,1e5)), auto.scale=1.2)
+sphview(rbind(x.red,x.blue), c(rep(1,1e5),rep(2,1e5)))
 
 }
 \seealso{

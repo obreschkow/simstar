@@ -6,18 +6,16 @@
 \usage{
 sphview4(
   x,
-  species,
   rotations = c(2, 3, 4, 1),
   screen = TRUE,
   pdffile = NULL,
   title = NULL,
+  scale = TRUE,
   ...
 )
 }
 \arguments{
 \item{x}{n-by-3 matrix, representing the 3D-coordinates of n particles.}
-
-\item{species}{optional n-element vector giving the integer species indices, which will specify the color of the particles. If not given, all particles will have the first colour given in the vector \code{col}.}
 
 \item{rotations}{4-vector or 4-element list specifying four different values/vectors of the argument \code{rotation} in \code{\link{sphview}}. These different rotations are shown in the bottom left, bottom right, top left, and top right panel, respectively, in this order.}
 
@@ -26,6 +24,8 @@ sphview4(
 \item{pdffile}{optional pdf-filename to save the image as pdf-file.}
 
 \item{title}{Text to be added to the figure.}
+
+\item{scale}{logical flag, specifying if a length scale is shown}
 
 \item{...}{additional parameters for \code{\link{sphview}}.}
 }
@@ -37,7 +37,7 @@ Produces a 2-by-2 panel figure, where each panel is made of an \code{\link{sphvi
 x.red = cooltools::runif3(1e5,polarangle = c(0,pi/2), azimuth = c(0,pi*0.75))
 x.blue = cooltools::runif3(1e5,polarangle = c(pi/2,pi), azimuth = c(pi*1.25,2*pi))
 x.green = t(t(cooltools::runif3(2e4,r=0.5))+c(1,1/4,-1))
-sphview4(rbind(x.red , x.blue, x.green), c(rep(1,1e5), rep(2,1e5), rep(3,2e4)), auto.scale=1.2)
+sphview4(rbind(x.red , x.blue, x.green), c(rep(1,1e5), rep(2,1e5), rep(3,2e4)))
 
 }
 \seealso{

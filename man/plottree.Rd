@@ -12,6 +12,7 @@ plottree(
   straightening = 0,
   simplify = FALSE,
   style = 3,
+  circle.height = 0,
   root.length = 0.5,
   leaf.length = 0.5,
   margin = 0.03,
@@ -54,7 +55,9 @@ plottree(
 
 \item{simplify}{logical flag. If TRUE, all the vertices, other than the root, with only one progenitor are removed for graphical simplicity.}
 
-\item{style}{integer value to specify the rendering: 1=straight lines, 2=splines, 3=polygon splines with optimal vertex-matching, 4=same as (3) but with round connectors}
+\item{style}{integer value to specify the rendering: 1=straight lines, 2=splines, 3=polygon splines with optimal vertex-matching}
+
+\item{circle.height}{real between 0 and 1 specifying the relative vertical height of circles drawn at the nodes (only with style=3)}
 
 \item{root.length}{length of the root branch, extending down from the root halo}
 
@@ -72,9 +75,9 @@ plottree(
 
 \item{add}{logical flag specifying whether the plot should be added to an existing plot}
 
-\item{xlim}{horizontal range of the tree with margin (especially needed if add = FALSE)}
+\item{xlim}{horizontal range of the tree with margin (only needed if add = TRUE)}
 
-\item{ylim}{vertical range of the tree with margin (only needed if add = FALSE)}
+\item{ylim}{vertical range of the tree with margin (only needed if add = TRUE)}
 
 \item{scale}{scaling factor to convert masses into line widths}
 
