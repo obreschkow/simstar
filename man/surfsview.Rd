@@ -6,11 +6,11 @@
 \usage{
 surfsview(
   haloid = 1,
-  subhalos = T,
+  subhalos = TRUE,
   snapshot = 199,
   at = NULL,
   parameterset = "L210_N1024-Hydro3D",
-  species,
+  species = NULL,
   fourprojections = FALSE,
   ...
 )

@@ -24,7 +24,9 @@ shape = function(x,y) {
   
   lmax = 4
   
-  # ensure that input is always an array
+  # ensure that input is always a matrix
+  x = as.matrix(x)
+  y = as.matrix(y)
   if (length(x)==3) x = array(x,c(1,3))
   if (length(y)==3) y = array(y,c(1,3))
   
@@ -36,19 +38,19 @@ shape = function(x,y) {
   moment.index = array(0,lmax+1)
   
   if (nx>0 & ny>0) {
-  
+    
     # translate positions to center of mass / geometric centre (if masses identical)
     m = c(rep(1/nx,nx),rep(1/ny,ny))
     cg = colSums(rbind(x,y)*m)/sum(m) # geometric centre
     x = t(t(x)-cg)
     y = t(t(y)-cg)
-  
+    
     # radius vector
     rx = sqrt(x[,1]^2+x[,2]^2+x[,3]^2)
     ry = sqrt(y[,1]^2+y[,2]^2+y[,3]^2)
     rxmean = mean(rx)
     rymean = mean(ry)
-  
+    
     # moment analysis
     for (l in seq(0,lmax)) {
       m = seq(-l,l)

@@ -19,32 +19,29 @@
 #'
 #' @export
 
-surfsview = function(haloid = 1, subhalos = T, snapshot = 199, at = NULL,
-                     parameterset = 'L210_N1024-Hydro3D', species,
+surfsview = function(haloid = 1, subhalos = TRUE, snapshot = 199, at = NULL,
+                     parameterset = 'L210_N1024-Hydro3D', species = NULL,
                      fourprojections = FALSE,...) {
   
   # check existence of surfsuite
   if (is.na(paths()$surfsuite)) stop('Please specify a surfsuite directory using paths(surfsuite = "...").')
   
   # load halo
-  fn = 'tmphalo.hdf'
-  if (is.null(at)) {
-    call = sprintf('%ssurfsuite gethalo %d -parameterset %s -snapshot %d -subhalos %d -center 1 -parameterfile %sparameters.txt -outputfile %s',
-                 paths()$surfsuite,haloid,parameterset,snapshot,as.integer(subhalos),paths()$surfsuite,fn)
-  } else {
-    call = sprintf('%ssurfsuite trackhalo %d -parameterset %s -snapshot %d -from %d -to %d -subhalos %d -center 1 -parameterfile %sparameters.txt -outputfile %s',
-                   paths()$surfsuite,haloid,parameterset,snapshot,at,at,as.integer(subhalos),paths()$surfsuite,fn)
-  }
-  system(call)
-  dat = rhdf5::h5read(fn,'/')
-  call = paste0('rm ',fn)
-  system(call)
+  dat = surfsread(haloid = haloid, subhalos = subhalos, snapshot = snapshot, at = at,
+                  parameterset = parameterset)
   
   # recast positions into matrix
   if (is.null(at)) {
     x = cbind(dat$particles$rx,dat$particles$ry,dat$particles$rz)
   } else {
     x = cbind(dat$particles$snapshot$rx,dat$particles$snapshot$ry,dat$particles$snapshot$rz)
+  }
+  
+  # species selection
+  if (!is.null(species)) {
+    sel = dat$particles$species%in%species
+    x = x[sel,]
+    dat$particles$species = dat$particles$species[sel]
   }
   
   # visualize
