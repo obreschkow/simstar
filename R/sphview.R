@@ -13,7 +13,7 @@
 #' @param value optional n-element vector specifying the particle property (e.g. temperatures) to be shown in color. If given, this overwrites the colors set by \code{species}.
 #' @param valrange 2-vector specifying the range of values covered by the colors in the vector \code{colorscale}.
 #' @param fix.brightness logical flag specifying whether the brightness of value-plots should scale with density.
-#' @param weight optional vector, specifying the weight of different particles.
+#' @param weight optional n-element vector, specifying the weight of different particles.
 #' @param colspecies vector of colors, specifying the color of the species given in the optional \code{species} vector.
 #' @param colscale vector of colors used to shown the particle property given by the optional vectors \code{value}.
 #' @param center optional 3-vector specifying the coordinate at the center of the plot. The default is the geometric center (= center of mass, if all particle masses are equal), if \code{x} is a matrix; and the box center, if \code{x} is a Gadget snapshot list.
@@ -72,6 +72,7 @@ sphview = function(x, species = NULL, value = NULL, valrange = NULL, fix.brightn
                    arrows = TRUE, arrow.origin = NULL, arrow.length = NULL, arrow.lwd = 1.5,
                    scale = TRUE, scale.origin = NULL, scale.length = NULL, scale.lwd = 1.5,
                    length.unit = '', xlab = NULL, ylab = NULL, cex=1) {
+  
   
   # handle x and species
   if (is.array(x)) {
@@ -143,8 +144,8 @@ sphview = function(x, species = NULL, value = NULL, valrange = NULL, fix.brightn
   } else {
     if (length(center)==2) center=c(center,0)
   }
-  x = t(t(x)-center)
-
+  x = sweep(x, 2, center)
+  
   # rotation matrix
   if (length(rotation)==3) {
     rot = t(cooltools::rotation3(rotation))
@@ -201,7 +202,7 @@ sphview = function(x, species = NULL, value = NULL, valrange = NULL, fix.brightn
   
   # project coordinates
   x = x[,1:2]
-
+  
   # determine plotting limits
   if (is.null(width)) width = 2*max(abs(x[,1]))
   height = width/aspect

@@ -1,7 +1,7 @@
 #' Show one or seveal 3D point sets in four projections
 #' 
 #' @importFrom cooltools nplot
-#' @importFrom grDevices pdf dev.off
+#' @importFrom grDevices pdf dev.off graphics.off
 #' @importFrom graphics lines
 #'
 #' @description Produces a 2-by-2 panel figure, where each panel is made of an \code{\link{sphview}} image in a different rotation.
@@ -42,7 +42,7 @@ sphview4 = function(x, rotations=c(2,3,4,1), screen = TRUE, pdffile = NULL, titl
 
     if (make) {
 
-      if (mode==1) grDevices::dev.off()
+      if (mode==1) grDevices::graphics.off()
       cooltools::nplot(xlim=c(0,1), ylim=c(0,1), pty='s', mar=c(0,0,0,0))
       p = par()$plt
 

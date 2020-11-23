@@ -55,7 +55,7 @@ sphview(
 
 \item{fix.brightness}{logical flag specifying whether the brightness of value-plots should scale with density.}
 
-\item{weight}{optional vector, specifying the weight of different particles.}
+\item{weight}{optional n-element vector, specifying the weight of different particles.}
 
 \item{colspecies}{vector of colors, specifying the color of the species given in the optional \code{species} vector.}
 
