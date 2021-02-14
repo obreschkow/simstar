@@ -41,15 +41,16 @@ sphview(
   length.unit = "",
   xlab = NULL,
   ylab = NULL,
-  cex = 1
+  cex = 1,
+  text.offset = 0
 )
 }
 \arguments{
-\item{x}{n-by-3 matrix, representing the 3D-coordinates of n particles. It can also be a list with Gadget data, returned by the function \code{snapread} in the \code{snapshot} package by A. Robotham.}
+\item{x}{n-by-3 matrix, representing the 3D-coordinates of n particles.}
 
 \item{species}{optional argument. If \code{x} is a n-by-3 matrix, \code{species} is a n-element vector giving the integer species indices, which will specify the color of the particles; if not given, all particles will be assumed to be of species=1. If \code{x} is a \code{snapshot} list, \code{species} is a single integer or a vector of integer specifying the species to select; if not given, all species are plotted.}
 
-\item{value}{optional n-element vector specifying the particle property (e.g. temperatures) to be shown in color. If given, this overwrites the colors set by \code{species}.}
+\item{value}{optional n-element vector specifying a particle property (e.g. temperatures) to be shown in color. This overwrites the colors set by \code{species}.}
 
 \item{valrange}{2-vector specifying the range of values covered by the colors in the vector \code{colorscale}.}
 
@@ -91,9 +92,9 @@ sphview(
 
 \item{freeze.lum}{logical flag (default FALSE). If set to TRUE, the luminosity will not be adjusted as a function of the visible particles. This is normally needed to avoid flickering in animations.}
 
-\item{sigma}{smoothing scale in simulation units. The default is NULL, meaning that a value is picked automatically.}
+\item{sigma}{smoothing scale in simulation units. The default is NULL, meaning that a value is picked automatically. If a vector is provided, the different elements will be interpreted as corresponding to different species.}
 
-\item{kde}{logical flag, specifying whether the particles are smoothed using an adaptive kernel density estimator.}
+\item{kde}{logical flag, specifying whether the particles are smoothed using an adaptive kernel density estimator. If a vector is provided, the different elements will be interpreted as corresponding to different species.}
 
 \item{arrows}{logical flag, specifying if axis-arrows are drawn}
 
@@ -118,6 +119,8 @@ sphview(
 \item{ylab}{label on vertical arrow (only shown if \code{arrows=TRUE}).}
 
 \item{cex}{text size}
+
+\item{text.offset}{optional extra offset for the arrow and scale labels}
 }
 \value{
 Returns a list of items
@@ -126,17 +129,14 @@ Returns a list of items
 \item{rotationmatrix}{rotation matrix applied to the input data, i.e. the projection was x = (x\%*\%rot)[,1:2]}
 }
 \description{
-Produces a square raster image visualising particle positions in 3D N-body/SPH data.
+Produces a raster image visualising particle positions in 3D N-body/SPH data.
 }
 \examples{
-# Example of 2x1e5 particles representing a homogenous sphere contained in another sphere
-x.red = cooltools::runif3(1e5, r = c(0,0.5))
-x.blue = cooltools::runif3(1e5)
-sphview(rbind(x.red,x.blue), c(rep(1,1e5),rep(2,1e5)))
+# Example of 2x1e4 particles in a triaxial ellipsoid
+x.red = t(t(cooltools::runif3(1e4))*c(3,2,1))
+x.blue = abs(t(t(cooltools::runif3(1e4,r=c(0.5,1)))*c(3,2,1)))
+sphview(rbind(x.red,x.blue), species=c(rep(1,1e4),rep(2,1e4)), center=0)
 
-}
-\seealso{
-\code{\link{sphview4}}
 }
 \author{
 Danail Obreschkow

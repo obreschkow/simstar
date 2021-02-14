@@ -1,16 +1,16 @@
 #' Visualise one or several 3D point sets
-#' 
-#' @importFrom cooltools nplot rasterflip lim griddata2 kde2 quadrupole rotation3
+#'
+#' @importFrom cooltools nplot rasterflip lim griddata2 kde2 quadrupole rotation3 vectornorm
 #' @importFrom png writePNG
 #' @importFrom EBImage gblur
 #' @importFrom grDevices pdf dev.off col2rgb
 #' @importFrom graphics axis lines par rasterImage rect text
 #'
-#' @description Produces a square raster image visualising particle positions in 3D N-body/SPH data.
+#' @description Produces a raster image visualising particle positions in 3D N-body/SPH data.
 #'
-#' @param x n-by-3 matrix, representing the 3D-coordinates of n particles. It can also be a list with Gadget data, returned by the function \code{snapread} in the \code{snapshot} package by A. Robotham.
+#' @param x n-by-3 matrix, representing the 3D-coordinates of n particles.
 #' @param species optional argument. If \code{x} is a n-by-3 matrix, \code{species} is a n-element vector giving the integer species indices, which will specify the color of the particles; if not given, all particles will be assumed to be of species=1. If \code{x} is a \code{snapshot} list, \code{species} is a single integer or a vector of integer specifying the species to select; if not given, all species are plotted.
-#' @param value optional n-element vector specifying the particle property (e.g. temperatures) to be shown in color. If given, this overwrites the colors set by \code{species}.
+#' @param value optional n-element vector specifying a particle property (e.g. temperatures) to be shown in color. This overwrites the colors set by \code{species}.
 #' @param valrange 2-vector specifying the range of values covered by the colors in the vector \code{colorscale}.
 #' @param fix.brightness logical flag specifying whether the brightness of value-plots should scale with density.
 #' @param weight optional n-element vector, specifying the weight of different particles.
@@ -31,8 +31,8 @@
 #' @param lum overall luminosity scaling factor (default 1).
 #' @param shadows differential luminosity scaling factor for darker regions (default 1).
 #' @param freeze.lum logical flag (default FALSE). If set to TRUE, the luminosity will not be adjusted as a function of the visible particles. This is normally needed to avoid flickering in animations.
-#' @param sigma smoothing scale in simulation units. The default is NULL, meaning that a value is picked automatically. 
-#' @param kde logical flag, specifying whether the particles are smoothed using an adaptive kernel density estimator.
+#' @param sigma smoothing scale in simulation units. The default is NULL, meaning that a value is picked automatically. If a vector is provided, the different elements will be interpreted as corresponding to different species.
+#' @param kde logical flag, specifying whether the particles are smoothed using an adaptive kernel density estimator. If a vector is provided, the different elements will be interpreted as corresponding to different species.
 #' @param arrows logical flag, specifying if axis-arrows are drawn
 #' @param arrow.origin optional 2-vector specifying the bottom left corner of the arrows
 #' @param arrow.length optional number specifying the length of the arrows
@@ -45,25 +45,24 @@
 #' @param xlab label on horizontal arrow (only shown if \code{arrows=TRUE}).
 #' @param ylab label on vertical arrow (only shown if \code{arrows=TRUE}).
 #' @param cex text size
-#' 
+#' @param text.offset optional extra offset for the arrow and scale labels
+#'
 #' @return Returns a list of items
 #' \item{rgb}{ngrid-by-ngrid-by-3 array of containig the rgb colour data between 0 and 1}
 #' \item{radius}{positive real number specifying the radius of the image along the horizontal and vertical axes, in the units of the particle positions}
 #' \item{rotationmatrix}{rotation matrix applied to the input data, i.e. the projection was x = (x\%*\%rot)[,1:2]}
 #'
-#' @seealso \code{\link{sphview4}}
-#'
 #' @author Danail Obreschkow
 #'
 #' @examples
-#' # Example of 2x1e5 particles representing a homogenous sphere contained in another sphere
-#' x.red = cooltools::runif3(1e5, r = c(0,0.5))
-#' x.blue = cooltools::runif3(1e5)
-#' sphview(rbind(x.red,x.blue), c(rep(1,1e5),rep(2,1e5)))
+#' # Example of 2x1e4 particles in a triaxial ellipsoid
+#' x.red = t(t(cooltools::runif3(1e4))*c(3,2,1))
+#' x.blue = abs(t(t(cooltools::runif3(1e4,r=c(0.5,1)))*c(3,2,1)))
+#' sphview(rbind(x.red,x.blue), species=c(rep(1,1e4),rep(2,1e4)), center=0)
 #'
 #' @export
 
-sphview = function(x, species = NULL, value = NULL, valrange = NULL, fix.brightness = TRUE, weight = NULL, 
+sphview = function(x, species = NULL, value = NULL, valrange = NULL, fix.brightness = TRUE, weight = NULL,
                    colspecies = c('#ff0010', '#0515ff', 'green', 'orange', 'yellow', 'purple'),
                    colscale = cooltools::spectrumcolors(1000),
                    center = NULL, width = NULL, aspect = 1, thickness = NULL, subsampling = 1, screen = TRUE, pngfile = NULL, pdffile = NULL,
@@ -71,12 +70,11 @@ sphview = function(x, species = NULL, value = NULL, valrange = NULL, fix.brightn
                    lum = 1, shadows = 1, freeze.lum = FALSE, sigma = NULL, kde = TRUE,
                    arrows = TRUE, arrow.origin = NULL, arrow.length = NULL, arrow.lwd = 1.5,
                    scale = TRUE, scale.origin = NULL, scale.length = NULL, scale.lwd = 1.5,
-                   length.unit = '', xlab = NULL, ylab = NULL, cex=1) {
-  
-  
-  # handle x and species
+                   length.unit = '', xlab = NULL, ylab = NULL, cex=1, text.offset = 0) {
+
+
+  # handle x
   if (is.array(x)) {
-    
     if (length(dim(x))==2) {
       n = dim(x)[1]
       if (dim(x)[2]==2) x = cbind(x,rep(0,n))
@@ -84,48 +82,28 @@ sphview = function(x, species = NULL, value = NULL, valrange = NULL, fix.brightn
     } else {
       stop('x must be an n-by-3 dimensional array')
     }
-    
-  } else if (is.list(x)) {
-    
-    if (is.null(x$head)) stop('if x is a list, it must contain an item "head"')
-    if (is.null(x$part)) stop('if x is a list, it must contain an item "part"')
-    if (is.null(width)) width = x$head$BoxSize
-    if (is.null(center)) center = rep(x$head$BoxSize/2,3)
-    s = rep(1:6,x$head$Npart)
-    x = cbind(x$part$x,x$part$y,x$part$z)
-    if (is.null(species)) {
-      species = s
-    } else {
-      if (min(species)<1) stop('species cannot be smaller than 1')
-      if (max(species)>6) stop('species cannot be larger than 6')
-      sel = s%in%species
-      x = x[sel,]
-      species = s[sel]
-    }
-    n = dim(x)[1]
-    
   } else {
-    stop('x must be an n-by-3 dimensional array or a list of the appropriate form')
+    stop('x must be an n-by-3 dimensional array')
   }
-  
+
   # handle species
   if (!is.null(species)) {
     if (length(species)!=n) stop('species must be a vector of same length as number of rows in x.')
     if (min(species)<1) stop('species must contain only positive integers.')
     if (max(species)>length(colspecies)) stop('not enough colours given to match the maximum species value.')
   }
-  
+
   # handle values
   if (!is.null(value)) {
     if (length(value)!=n) stop('value must be a vector of same length as number of rows in x.')
     if (is.null(valrange)) valrange = range(value)+c(-1e-5,1e-5)*(mean(abs(value))+1)
   }
-  
+
   # handle weights
   if (!is.null(weight)) {
     if (length(weight)!=n) stop('weight must be a vector of same length as number of rows in x.')
   }
-  
+
   # subsampling
   if (subsampling<=0 | subsampling>1) stop('subsampling must be a value in the interval (0,1].')
   if (subsampling<1) {
@@ -145,7 +123,7 @@ sphview = function(x, species = NULL, value = NULL, valrange = NULL, fix.brightn
     if (length(center)==2) center=c(center,0)
   }
   x = sweep(x, 2, center)
-  
+
   # rotation matrix
   if (length(rotation)==3) {
     rot = t(cooltools::rotation3(rotation))
@@ -158,36 +136,36 @@ sphview = function(x, species = NULL, value = NULL, valrange = NULL, fix.brightn
       if (is.null(xlab)) xlab = 'x'
       if (is.null(ylab)) ylab = 'y'
     } else if (rotation==2) {
-      rot = rbind(c(0,0,1),c(1,0,0),c(0,1,0))
+      rot = rbind(c(0,1,0),c(0,0,1),c(1,0,0))
       if (is.null(xlab)) xlab = 'y'
       if (is.null(ylab)) ylab = 'z'
     } else if (rotation==3) {
-      rot = rbind(c(0,1,0),c(0,0,1),c(1,0,0))
+      rot = rbind(c(0,0,1),c(1,0,0),c(0,1,0))
       if (is.null(xlab)) xlab = 'z'
       if (is.null(ylab)) ylab = 'x'
     } else if (rotation==4) {
-      rot = e[,c(1,3,2)]
+      rot = t(e[,c(1,3,2)])
       if (is.null(xlab)) xlab = expression(lambda ['max'])
       if (is.null(ylab)) ylab = expression('  '*lambda ['min'])
     } else if (rotation==5) {
-      rot = e[,c(1,2,3)]
+      rot = t(e[,c(1,2,3)])
       if (is.null(xlab)) xlab = expression(lambda ['max'])
       if (is.null(ylab)) ylab = expression('  '*lambda ['mid'])
     } else if (rotation==6) {
-      rot = e[,c(2,3,1)]
+      rot = t(e[,c(2,3,1)])
       if (is.null(xlab)) xlab = expression(lambda ['mid'])
       if (is.null(ylab)) ylab = expression('  '*lambda ['min'])
     } else {
       stop('rotation must be an integer 1,...,6, a real 3-vector, or a 3-by-3 matrix.')
     }
   } else if (length(rotation)==9) {
-    rot = rotation
+    rot = matrix(rotation,3,3)
   } else {
     stop('rotation must be an integer 1,...,6, a real 3-vector, or a 3-by-3 matrix.')
   }
-  
-  # rotate coordinates
-  x = x%*%rot
+
+  # rotate coordinates (active rotation)
+  x = t(rot%*%t(x))
 
   # select slice
   if (!is.null(thickness)) {
@@ -199,18 +177,18 @@ sphview = function(x, species = NULL, value = NULL, valrange = NULL, fix.brightn
     if (!is.null(value)) value = value[sel]
     if (!is.null(weight)) weight = weight[sel]
   }
-  
-  # project coordinates
-  x = x[,1:2]
-  
+
   # determine plotting limits
-  if (is.null(width)) width = 2*max(abs(x[,1]))
+  if (is.null(width)) width = 2*sqrt(2)*max(vectornorm(x))/sqrt(1+1/aspect^2)
   height = width/aspect
   xlim = c(-1,1)*width/2
   ylim = c(-1,1)*height/2
   mean.length = sqrt(width*height)
+
+  # project coordinates
+  x = x[,1:2]
   n.plot = sum(x[,1]>=xlim[1] & x[,1]<=xlim[2] & x[,2]>=ylim[1] & x[,2]<=ylim[2])
-  
+
   # determine arrows, scale, titles
   if (is.null(arrow.origin)) arrow.origin = c(xlim[1],ylim[1])+0.05*mean.length
   if (is.null(arrow.length)) arrow.length = 0.1*mean.length
@@ -218,7 +196,7 @@ sphview = function(x, species = NULL, value = NULL, valrange = NULL, fix.brightn
   if (is.null(scale.length)) scale.length = 0.1*mean.length
   scale.length = signif(scale.length,1)
   if (is.null(title.origin)) title.origin = c(xlim[1]+0.06*mean.length,ylim[2]-0.06*mean.length)
-  
+
   # prepare grid
   nx = round(ngrid*width/mean.length)
   ny = round(ngrid*height/mean.length)
@@ -230,7 +208,7 @@ sphview = function(x, species = NULL, value = NULL, valrange = NULL, fix.brightn
     smoothing = sigma/dx # smoothing length in pixel
   }
   img = array(0,c(nx,ny,3))
-  
+
   # prepare rastering
   if (is.null(value) & is.null(species)) {
     type = 0
@@ -247,13 +225,16 @@ sphview = function(x, species = NULL, value = NULL, valrange = NULL, fix.brightn
     n.loop = 2
     col = t(col2rgb(colscale)/255)
   }
-  
+
+  if (length(smoothing)==1) smoothing=rep(smoothing,n.loop)
+  if (length(kde)==1) kde=rep(kde,n.loop)
+
   n.eff = 0
   w = weight
   sel = seq(n)
-  
+
   for (i in seq(n.loop)) {
-    
+
     if (type == 1) {
       sel = species==s[i]
     } else if (type == 2) {
@@ -264,21 +245,21 @@ sphview = function(x, species = NULL, value = NULL, valrange = NULL, fix.brightn
         if (!is.null(weight)) w = w*weight
       }
     }
-    
-    if (smoothing==0) {
+
+    if (smoothing[i]==0) {
       g = cooltools::griddata2(x[sel,1],x[sel,2],w=w[sel],xlim=xlim,ylim=ylim,n=c(nx,ny))
       if (is.null(g$m)) g$m = g$n
     } else {
-      if (kde) {
-        g = cooltools::kde2(x[sel,1],x[sel,2],w=w[sel],xlim=xlim,ylim=ylim,n=c(nx,ny),s = smoothing/8, sd.max=smoothing*2)
+      if (kde[i]) {
+        g = cooltools::kde2(x[sel,1],x[sel,2],w=w[sel],xlim=xlim,ylim=ylim,n=c(nx,ny),s = smoothing[i]/8, sd.max=smoothing[i]*2)
         g$m = g$d
       } else {
         g = cooltools::griddata2(x[sel,1],x[sel,2],w=w[sel],xlim=xlim,ylim=ylim,n=c(nx,ny))
         if (is.null(g$m)) g$m = g$n
-        g$m = EBImage::gblur(g$m,smoothing)
+        g$m = EBImage::gblur(g$m,smoothing[i])
       }
     }
-    
+
     if (type==0) {
       for (k in seq(3)) {
         img[,,k] = img[,,k]+col[k]*g$m
@@ -300,7 +281,7 @@ sphview = function(x, species = NULL, value = NULL, valrange = NULL, fix.brightn
     }
 
   }
-  
+
   # rescale brightness
   img = atan(img*ngrid^2/ifelse(freeze.lum,n,n.eff)*(0.4*lum)*ifelse(type==2,0.3,0.5))/pi*2
   f = 10^max(0,2.1*shadows)
@@ -319,7 +300,7 @@ sphview = function(x, species = NULL, value = NULL, valrange = NULL, fix.brightn
       img[,,k] = l*array(col[colid,k],c(nx,ny))
     }
   }
-  
+
   # save raster image as png
   if (!is.null(pngfile)) {
     png::writePNG(cooltools::rasterflip(img),pngfile)
@@ -343,7 +324,7 @@ sphview = function(x, species = NULL, value = NULL, valrange = NULL, fix.brightn
 
       # initialize plot
       cooltools::nplot(xlim=xlim, ylim=ylim, asp=1)
-      
+
       # plot raster
       rasterImage(cooltools::rasterflip(img),xlim[1],ylim[1],xlim[2],ylim[2])
 
@@ -352,28 +333,28 @@ sphview = function(x, species = NULL, value = NULL, valrange = NULL, fix.brightn
         arrows(arrow.origin[1],arrow.origin[2],arrow.origin[1]+arrow.length,arrow.origin[2],col='white',length = 0.1,angle=20,lwd=arrow.lwd)
         arrows(arrow.origin[1],arrow.origin[2],arrow.origin[1],arrow.origin[2]+arrow.length,col='white',length = 0.1,angle=20,lwd=arrow.lwd)
         if (!is.null(xlab)) {
-          text(arrow.origin[1]+arrow.length,arrow.origin[2],xlab,pos=4,col='white',cex=cex)
+          text(arrow.origin[1]+arrow.length+text.offset,arrow.origin[2],xlab,pos=4,col='white',cex=cex)
         }
         if (!is.null(ylab)) {
-          text(arrow.origin[1],arrow.origin[2]+arrow.length,ylab,pos=3,col='white',cex=cex)
+          text(arrow.origin[1],arrow.origin[2]+arrow.length+text.offset,ylab,pos=3,col='white',cex=cex)
         }
       }
-      
+
       # length scale
       if (scale) {
-        text(scale.origin[1]-scale.length/2,scale.origin[2],sprintf('%s %s',signif(scale.length,1),length.unit),pos=3,col='white',cex=cex)
+        text(scale.origin[1]-scale.length/2,scale.origin[2]+text.offset,sprintf('%s %s',signif(scale.length,1),length.unit),pos=3,col='white',cex=cex)
         lines(scale.origin[1]-c(0,scale.length),rep(scale.origin[2],2),col='white',lwd=scale.lwd)
       }
-      
+
       # title
       if (!is.null(title)) text(title.origin[1], title.origin[2], title, pos=4, col='white', offset=-0.4)
-      
+
       if (mode==2) {dev.off()}
 
     }
 
   }
-  
+
   # return results
   invisible(list(rgb = img, xlim = xlim, ylim = ylim, center=center, rotationmatrix = rot))
 

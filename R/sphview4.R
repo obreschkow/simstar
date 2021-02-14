@@ -1,6 +1,6 @@
 #' Show one or seveal 3D point sets in four projections
-#' 
-#' @importFrom cooltools nplot
+#'
+#' @importFrom cooltools nplot runif3 rotation3
 #' @importFrom grDevices pdf dev.off graphics.off
 #' @importFrom graphics lines
 #'
@@ -13,17 +13,15 @@
 #' @param title Text to be added to the figure.
 #' @param scale logical flag, specifying if a length scale is shown
 #' @param ... additional parameters for \code{\link{sphview}}.
-#' 
+#'
 #' @seealso \code{\link{sphview}}
 #'
 #' @author Danail Obreschkow
 #'
 #' @examples
-#' # Example of three particle species shown in four projections
-#' x.red = cooltools::runif3(1e5,polarangle = c(0,pi/2), azimuth = c(0,pi*0.75))
-#' x.blue = cooltools::runif3(1e5,polarangle = c(pi/2,pi), azimuth = c(pi*1.25,2*pi))
-#' x.green = t(t(cooltools::runif3(2e4,r=0.5))+c(1,1/4,-1))
-#' sphview4(rbind(x.red , x.blue, x.green), c(rep(1,1e5), rep(2,1e5), rep(3,2e4)))
+#' # Example of a triaxial ellipsoid shown in four projections
+#' x = t(t(cooltools::runif3(1e4))*c(3,2,1))%*%cooltools::rotation3(c(1,1,1))
+#' sphview4(x)
 #'
 #' @export
 
@@ -52,25 +50,25 @@ sphview4 = function(x, rotations=c(2,3,4,1), screen = TRUE, pdffile = NULL, titl
 
         par(fig=c(p[1]+(p[2]-p[1])*ix/2,p[1]+(p[2]-p[1])*(ix/2+0.5),p[3]+(p[4]-p[3])*iy/2,p[3]+(p[4]-p[3])*(iy/2+0.5)),
             new=TRUE, mar=c(0,0,0,0) )
-        
+
         if (i==1) {
-          s = sphview(x, rotation = rotations[[i]], pngfile = NULL, pdffile = NULL, screen = TRUE, 
+          s = sphview(x, rotation = rotations[[i]], pngfile = NULL, pdffile = NULL, screen = TRUE,
                       scale=ifelse(i==2,scale,FALSE), ...)
         } else {
-          s = sphview(x, rotation = rotations[[i]], pngfile = NULL, pdffile = NULL, screen = TRUE, 
+          s = sphview(x, rotation = rotations[[i]], pngfile = NULL, pdffile = NULL, screen = TRUE,
                       scale=ifelse(i==2,scale,FALSE), width=diff(s$xlim), ...)
         }
         ix = (ix+1)%%2
         if (ix==0) iy = iy+1
 
       }
-      
+
       # lines between panels
       par(fig=p, new=TRUE, mar=c(0,0,0,0))
-      nplot(xlim=c(0,1), ylim=c(0,1))
+      cooltools::nplot(xlim=c(0,1), ylim=c(0,1))
       lines(c(1,1)/2,c(0,1),col='grey')
       lines(c(0,1),c(1,1)/2,col='grey')
-      
+
       # title
       if (!is.null(title)) text(0.06, 1.94, title, pos=4, col='white', offset=-0.4)
 

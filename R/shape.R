@@ -39,7 +39,7 @@ shape = function(x,y) {
   
   if (nx>0 & ny>0) {
     
-    # translate positions to center of mass / geometric centre (if masses identical)
+    # center particles to mid-point between CM of mass of DM and gas
     m = c(rep(1/nx,nx),rep(1/ny,ny))
     cg = colSums(rbind(x,y)*m)/sum(m) # geometric centre
     x = t(t(x)-cg)

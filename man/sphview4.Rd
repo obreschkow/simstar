@@ -33,11 +33,9 @@ sphview4(
 Produces a 2-by-2 panel figure, where each panel is made of an \code{\link{sphview}} image in a different rotation.
 }
 \examples{
-# Example of three particle species shown in four projections
-x.red = cooltools::runif3(1e5,polarangle = c(0,pi/2), azimuth = c(0,pi*0.75))
-x.blue = cooltools::runif3(1e5,polarangle = c(pi/2,pi), azimuth = c(pi*1.25,2*pi))
-x.green = t(t(cooltools::runif3(2e4,r=0.5))+c(1,1/4,-1))
-sphview4(rbind(x.red , x.blue, x.green), c(rep(1,1e5), rep(2,1e5), rep(3,2e4)))
+# Example of a triaxial ellipsoid shown in four projections
+x = t(t(cooltools::runif3(1e4))*c(3,2,1))\%*\%cooltools::rotation3(c(1,1,1))
+sphview4(x)
 
 }
 \seealso{

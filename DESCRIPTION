@@ -18,6 +18,7 @@ Imports:
     plotrix,
     data.table,
     celestial,
+    snapshot,
     magick
 License: GPL-3
 Encoding: UTF-8
