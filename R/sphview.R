@@ -196,6 +196,7 @@ sphview = function(x, species = NULL, value = NULL, valrange = NULL, fix.brightn
   if (is.null(scale.length)) scale.length = 0.1*mean.length
   scale.length = signif(scale.length,1)
   if (is.null(title.origin)) title.origin = c(xlim[1]+0.06*mean.length,ylim[2]-0.06*mean.length)
+  dtext = 0.01*mean.length*(1+text.offset)
 
   # prepare grid
   nx = round(ngrid*width/mean.length)
@@ -333,16 +334,16 @@ sphview = function(x, species = NULL, value = NULL, valrange = NULL, fix.brightn
         arrows(arrow.origin[1],arrow.origin[2],arrow.origin[1]+arrow.length,arrow.origin[2],col='white',length = 0.1,angle=20,lwd=arrow.lwd)
         arrows(arrow.origin[1],arrow.origin[2],arrow.origin[1],arrow.origin[2]+arrow.length,col='white',length = 0.1,angle=20,lwd=arrow.lwd)
         if (!is.null(xlab)) {
-          text(arrow.origin[1]+arrow.length+text.offset,arrow.origin[2],xlab,pos=4,col='white',cex=cex)
+          text(arrow.origin[1]+arrow.length+dtext,arrow.origin[2],xlab,pos=4,col='white',cex=cex)
         }
         if (!is.null(ylab)) {
-          text(arrow.origin[1],arrow.origin[2]+arrow.length+text.offset,ylab,pos=3,col='white',cex=cex)
+          text(arrow.origin[1],arrow.origin[2]+arrow.length+dtext,ylab,pos=3,col='white',cex=cex)
         }
       }
 
       # length scale
       if (scale) {
-        text(scale.origin[1]-scale.length/2,scale.origin[2]+text.offset,sprintf('%s %s',signif(scale.length,1),length.unit),pos=3,col='white',cex=cex)
+        text(scale.origin[1]-scale.length/2,scale.origin[2]+dtext,sprintf('%s %s',signif(scale.length,1),length.unit),pos=3,col='white',cex=cex)
         lines(scale.origin[1]-c(0,scale.length),rep(scale.origin[2],2),col='white',lwd=scale.lwd)
       }
 
