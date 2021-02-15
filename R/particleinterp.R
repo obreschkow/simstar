@@ -86,6 +86,8 @@ particleinterp = function(x0,x1,t0,t1,ti=0.5,v0=NULL,v1=NULL,afield=NULL,dt=NULL
   ht = t1-t0
   
   if (is.null(afield)) {
+    
+    if (!is.null(dt)) stop('argument dt is only used if afield given.')
   
     if (is.null(v0)) v0 = (x1-x0)/ht
     if (is.null(v1)) v1 = (x1-x0)/ht
