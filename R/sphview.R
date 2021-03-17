@@ -251,13 +251,13 @@ sphview = function(x, species = NULL, value = NULL, valrange = NULL, fix.brightn
       g = cooltools::griddata2(x[sel,1],x[sel,2],w=w[sel],xlim=xlim,ylim=ylim,n=c(nx,ny))
       if (is.null(g$m)) g$m = g$n
     } else {
-      if (kde[i]) {
-        g = cooltools::kde2(x[sel,1],x[sel,2],w=w[sel],xlim=xlim,ylim=ylim,n=c(nx,ny),s = smoothing[i]/8, sd.max=smoothing[i]*2)
+      if (kde[s[i]]) {
+        g = cooltools::kde2(x[sel,1],x[sel,2],w=w[sel],xlim=xlim,ylim=ylim,n=c(nx,ny),s = smoothing[s[i]]/8, sd.max=smoothing[s[i]]*2)
         g$m = g$d
       } else {
         g = cooltools::griddata2(x[sel,1],x[sel,2],w=w[sel],xlim=xlim,ylim=ylim,n=c(nx,ny))
         if (is.null(g$m)) g$m = g$n
-        g$m = EBImage::gblur(g$m,smoothing[i])
+        g$m = EBImage::gblur(g$m,smoothing[s[i]])
       }
     }
 
