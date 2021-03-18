@@ -1,7 +1,7 @@
 Package: simstar
 Type: Package
 Title: Processing astrophysical simulations
-Version: 0.25
+Version: 0.26
 Author: Danail Obreschkow
 Maintainer: The package maintainer <danail.obreschkow@gmail.com>
 Description: Routines for post-processing and visualising astrophysical simulation data. Some routines require external tools available at https://github.com/obreschkow.

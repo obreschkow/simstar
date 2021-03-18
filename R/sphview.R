@@ -252,7 +252,7 @@ sphview = function(x, species = NULL, value = NULL, valrange = NULL, fix.brightn
       if (is.null(g$m)) g$m = g$n
     } else {
       if (kde[s[i]]) {
-        g = cooltools::kde2(x[sel,1],x[sel,2],w=w[sel],xlim=xlim,ylim=ylim,n=c(nx,ny),s = smoothing[s[i]]/8, sd.max=smoothing[s[i]]*2)
+        g = kde2(x[sel,1],x[sel,2],w=w[sel],xlim=xlim,ylim=ylim,n=c(nx,ny),s = smoothing[s[i]]/8, sd.max=smoothing[s[i]]*2,cpp=TRUE)
         g$m = g$d
       } else {
         g = cooltools::griddata2(x[sel,1],x[sel,2],w=w[sel],xlim=xlim,ylim=ylim,n=c(nx,ny))
