@@ -46,6 +46,7 @@
 #' @param ylab label on vertical arrow (only shown if \code{arrows=TRUE}).
 #' @param cex text size
 #' @param text.offset optional extra offset for the arrow and scale labels
+#' @param text.col color of text, arrows and scale
 #'
 #' @return Returns a list of items
 #' \item{rgb}{ngrid-by-ngrid-by-3 array of containig the rgb colour data between 0 and 1}
@@ -70,7 +71,7 @@ sphview = function(x, species = NULL, value = NULL, valrange = NULL, fix.brightn
                    lum = 1, shadows = 1, freeze.lum = FALSE, sigma = NULL, kde = TRUE,
                    arrows = TRUE, arrow.origin = NULL, arrow.length = NULL, arrow.lwd = 1.5,
                    scale = TRUE, scale.origin = NULL, scale.length = NULL, scale.lwd = 1.5,
-                   length.unit = '', xlab = NULL, ylab = NULL, cex=1, text.offset = 0) {
+                   length.unit = '', xlab = NULL, ylab = NULL, cex=1, text.offset = 0, text.col = 'white') {
 
 
   # handle x
@@ -223,6 +224,7 @@ sphview = function(x, species = NULL, value = NULL, valrange = NULL, fix.brightn
     col = t(col2rgb(colspecies)/255)
   } else {
     type = 2
+    s = c(1,1)
     n.loop = 2
     col = t(col2rgb(colscale)/255)
   }
@@ -331,24 +333,24 @@ sphview = function(x, species = NULL, value = NULL, valrange = NULL, fix.brightn
 
       # arrows
       if (arrows) {
-        arrows(arrow.origin[1],arrow.origin[2],arrow.origin[1]+arrow.length,arrow.origin[2],col='white',length = 0.1,angle=20,lwd=arrow.lwd)
-        arrows(arrow.origin[1],arrow.origin[2],arrow.origin[1],arrow.origin[2]+arrow.length,col='white',length = 0.1,angle=20,lwd=arrow.lwd)
+        arrows(arrow.origin[1],arrow.origin[2],arrow.origin[1]+arrow.length,arrow.origin[2],col=text.col,length = 0.1,angle=20,lwd=arrow.lwd)
+        arrows(arrow.origin[1],arrow.origin[2],arrow.origin[1],arrow.origin[2]+arrow.length,col=text.col,length = 0.1,angle=20,lwd=arrow.lwd)
         if (!is.null(xlab)) {
-          text(arrow.origin[1]+arrow.length+dtext,arrow.origin[2],xlab,pos=4,col='white',cex=cex)
+          text(arrow.origin[1]+arrow.length+dtext,arrow.origin[2],xlab,pos=4,col=text.col,cex=cex)
         }
         if (!is.null(ylab)) {
-          text(arrow.origin[1],arrow.origin[2]+arrow.length+dtext,ylab,pos=3,col='white',cex=cex)
+          text(arrow.origin[1],arrow.origin[2]+arrow.length+dtext,ylab,pos=3,col=text.col,cex=cex)
         }
       }
 
       # length scale
       if (scale) {
-        text(scale.origin[1]-scale.length/2,scale.origin[2]+dtext,sprintf('%s %s',signif(scale.length,1),length.unit),pos=3,col='white',cex=cex)
-        lines(scale.origin[1]-c(0,scale.length),rep(scale.origin[2],2),col='white',lwd=scale.lwd)
+        text(scale.origin[1]-scale.length/2,scale.origin[2]+dtext,sprintf('%s %s',signif(scale.length,1),length.unit),pos=3,col=text.col,cex=cex)
+        lines(scale.origin[1]-c(0,scale.length),rep(scale.origin[2],2),col=text.col,lwd=scale.lwd)
       }
 
       # title
-      if (!is.null(title)) text(title.origin[1], title.origin[2], title, pos=4, col='white', offset=-0.4)
+      if (!is.null(title)) text(title.origin[1], title.origin[2], title, pos=4, col=text.col, offset=-0.4)
 
       if (mode==2) {dev.off()}
 

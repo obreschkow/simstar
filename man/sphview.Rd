@@ -42,7 +42,8 @@ sphview(
   xlab = NULL,
   ylab = NULL,
   cex = 1,
-  text.offset = 0
+  text.offset = 0,
+  text.col = "white"
 )
 }
 \arguments{
@@ -121,6 +122,8 @@ sphview(
 \item{cex}{text size}
 
 \item{text.offset}{optional extra offset for the arrow and scale labels}
+
+\item{text.col}{color of text, arrows and scale}
 }
 \value{
 Returns a list of items
